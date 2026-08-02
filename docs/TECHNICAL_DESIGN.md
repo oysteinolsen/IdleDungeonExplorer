@@ -336,6 +336,10 @@ rojo build default.project.json --output build/IdleDungeonExplorer.rbxlx
 
 The full validation command remains the definition of done before a commit or handoff.
 
+GitHub Actions runs a hosted subset of the same script on a clean Windows runner for pull requests, pushes to `main`, and manual dispatches. It passes `-SkipStudioTests`, so exact tool/version verification, locked dependency restoration, formatting, linting, strict type analysis, boundary checks, and both Rojo builds remain automated. The ordinary local command keeps Studio tests enabled by default. Hosted validation does not replace the Studio/Jest requirement because GitHub's runner image does not provide Roblox Studio.
+
+The workflow uses read-only token permissions, an immutable commit pin for `actions/checkout`, and the exact official Rokit 1.2.0 Windows archive verified against its published SHA-256 digest before execution. Avoid adding a self-hosted runner merely to automate Studio: unlike GitHub's disposable hosted machines, it would execute pull-request code on a persistent developer machine and materially increase maintenance and security risk.
+
 ## Smallest end-to-end implementation order
 
 Do not work ahead of the roadmap. Within each selected item, implement the thinnest tested path in this order:

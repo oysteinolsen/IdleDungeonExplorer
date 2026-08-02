@@ -390,6 +390,14 @@ The script is expected to:
 
 A successful command returns exit code `0` and prints a success summary. If it fails, start with the first reported failing stage rather than later secondary errors.
 
+### What GitHub Actions validates
+
+Pull requests and pushes to `main` run the same validation script on a clean GitHub-hosted Windows machine with `-SkipStudioTests`. The hosted check restores the pinned toolchain and dependencies, then verifies formatting, linting, strict Luau types, production/test boundaries, and both Rojo builds.
+
+This is comparable to a .NET CI job that restores locked packages, compiles the solution, and runs tests that do not require a separately installed desktop application. Roblox Studio is not installed on GitHub-hosted runners, so Jest Roblox remains part of the normal local validation command above. The default command does **not** skip Studio; `-SkipStudioTests` exists specifically for environments where Studio is unavailable and is not a substitute for full validation before completing a gameplay change.
+
+The workflow downloads the exact official Rokit 1.2.0 release archive and verifies its published SHA-256 before running it. The only reusable GitHub Action is `actions/checkout`, pinned to an immutable commit, and the workflow token has read-only repository access.
+
 ## Step 13 — Start a live development session
 
 This step requires `default.project.json` from P1.2.

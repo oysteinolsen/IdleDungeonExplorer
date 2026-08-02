@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Static validation and builds
+    runs-on: windows-2025
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install verified Rokit 1.2.0
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $archivePath = Join-Path $env:RUNNER_TEMP "rokit-1.2.0-windows-x86_64.zip"
+          $extractPath = Join-Path $env:RUNNER_TEMP "rokit-1.2.0"
+          $downloadUri = "https://github.com/rojo-rbx/rokit/releases/download/v1.2.0/rokit-1.2.0-windows-x86_64.zip"
+          $expectedHash = "f9ba1704014ff67d51e8005f605955c7c26d2429a5312a9419dc477fc310e96d"
+
+          Invoke-WebRequest -Uri $downloadUri -OutFile $archivePath
+          $actualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archivePath).Hash
+          if (-not $actualHash.Equals($expectedHash, [System.StringComparison]::OrdinalIgnoreCase)) {
+              throw "Rokit archive hash mismatch. Expected '$expectedHash', received '$actualHash'."
+          }
+
+          Expand-Archive -LiteralPath $archivePath -DestinationPath $extractPath
+          $downloadedRokit = Get-ChildItem -LiteralPath $extractPath -Filter "rokit.exe" -File -Recurse |
+              Select-Object -First 1
+          if ($null -eq $downloadedRokit) {
+              throw "The verified Rokit archive did not contain rokit.exe."
+          }
+
+          & $downloadedRokit.FullName self-install
+          if ($LASTEXITCODE -ne 0) {
+              throw "Rokit self-install exited with code $LASTEXITCODE."
+          }
+
+          $rokitBin = Join-Path $env:USERPROFILE ".rokit\bin"
+          $installedRokit = Join-Path $rokitBin "rokit.exe"
+          if (-not (Test-Path -LiteralPath $installedRokit -PathType Leaf)) {
+              throw "Rokit self-install did not create the expected executable: $installedRokit"
+          }
+
+          Add-Content -LiteralPath $env:GITHUB_PATH -Value $rokitBin
+          & $installedRokit --version
+          if ($LASTEXITCODE -ne 0) {
+              throw "The installed Rokit executable failed its version check."
+          }
+
+      - name: Validate without Studio-hosted tests
+        shell: pwsh
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\validate.ps1 -SkipStudioTests

@@ -1,7 +1,9 @@
 [CmdletBinding()]
 param(
     [ValidateRange(30, 900)]
-    [int]$StudioTimeoutSeconds = 180
+    [int]$StudioTimeoutSeconds = 180,
+
+    [switch]$SkipStudioTests
 )
 
 Set-StrictMode -Version Latest
@@ -263,71 +265,78 @@ Invoke-Stage -Name "Build test place" -Action {
     )
 }
 
-Invoke-Stage -Name "Run Jest through Roblox Studio CLI" -Action {
-    $studioRoot = Join-Path $env:LOCALAPPDATA "Roblox\Versions"
-    $studio = Get-ChildItem -Path $studioRoot -Filter "RobloxStudioBeta.exe" -File -Recurse |
-        Sort-Object LastWriteTime -Descending |
-        Select-Object -First 1
+if ($SkipStudioTests) {
+    Write-Host ""
+    Write-Host "==> Run Jest through Roblox Studio CLI"
+    Write-Host "[SKIP] Roblox Studio tests were explicitly skipped."
+}
+else {
+    Invoke-Stage -Name "Run Jest through Roblox Studio CLI" -Action {
+        $studioRoot = Join-Path $env:LOCALAPPDATA "Roblox\Versions"
+        $studio = Get-ChildItem -Path $studioRoot -Filter "RobloxStudioBeta.exe" -File -Recurse |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
 
-    if ($null -eq $studio) {
-        throw "Roblox Studio was not found under $studioRoot."
-    }
-
-    Write-Host "  Studio path: $($studio.FullName)"
-    Write-Host "  Studio version: $($studio.VersionInfo.ProductVersion)"
-
-    if (Test-Path -LiteralPath $TestOutputPath) {
-        Remove-Item -Force -LiteralPath $TestOutputPath
-    }
-
-    $processStartInfo = [System.Diagnostics.ProcessStartInfo]::new()
-    $processStartInfo.FileName = $studio.FullName
-    $processStartInfo.UseShellExecute = $false
-
-    foreach ($argument in @(
-        "--task",
-        "RunScript",
-        "--localPlaceFile",
-        $TestPlacePath,
-        "--runScriptFile",
-        $TestRunnerPath,
-        "--outputFile",
-        $TestOutputPath,
-        "--quitAfterExecution"
-    )) {
-        $processStartInfo.ArgumentList.Add($argument)
-    }
-
-    $studioProcess = [System.Diagnostics.Process]::Start($processStartInfo)
-    if ($null -eq $studioProcess) {
-        throw "Failed to start Roblox Studio."
-    }
-
-    $finished = $studioProcess.WaitForExit($StudioTimeoutSeconds * 1000)
-    if (-not $finished) {
-        $studioProcess.Kill($true)
-        $studioProcess.WaitForExit()
-        throw "Roblox Studio exceeded the ${StudioTimeoutSeconds}-second test timeout."
-    }
-
-    if (-not (Test-Path -LiteralPath $TestOutputPath -PathType Leaf)) {
-        throw "Roblox Studio did not create the expected test log: $TestOutputPath"
-    }
-
-    $testOutput = Get-Content -Raw -LiteralPath $TestOutputPath
-    if ($studioProcess.ExitCode -ne 0 -or -not $testOutput.Contains($SuccessSentinel)) {
-        Write-Host "--- Roblox Studio test output ---"
-        Write-Host $testOutput
-        Write-Host "--- End Roblox Studio test output ---"
-
-        if ($studioProcess.ExitCode -ne 0) {
-            throw "Roblox Studio exited with code $($studioProcess.ExitCode)."
+        if ($null -eq $studio) {
+            throw "Roblox Studio was not found under $studioRoot."
         }
 
-        throw "Roblox Studio output did not contain the success sentinel '$SuccessSentinel'."
-    }
+        Write-Host "  Studio path: $($studio.FullName)"
+        Write-Host "  Studio version: $($studio.VersionInfo.ProductVersion)"
 
-    Write-Host $testOutput
+        if (Test-Path -LiteralPath $TestOutputPath) {
+            Remove-Item -Force -LiteralPath $TestOutputPath
+        }
+
+        $processStartInfo = [System.Diagnostics.ProcessStartInfo]::new()
+        $processStartInfo.FileName = $studio.FullName
+        $processStartInfo.UseShellExecute = $false
+
+        foreach ($argument in @(
+            "--task",
+            "RunScript",
+            "--localPlaceFile",
+            $TestPlacePath,
+            "--runScriptFile",
+            $TestRunnerPath,
+            "--outputFile",
+            $TestOutputPath,
+            "--quitAfterExecution"
+        )) {
+            $processStartInfo.ArgumentList.Add($argument)
+        }
+
+        $studioProcess = [System.Diagnostics.Process]::Start($processStartInfo)
+        if ($null -eq $studioProcess) {
+            throw "Failed to start Roblox Studio."
+        }
+
+        $finished = $studioProcess.WaitForExit($StudioTimeoutSeconds * 1000)
+        if (-not $finished) {
+            $studioProcess.Kill($true)
+            $studioProcess.WaitForExit()
+            throw "Roblox Studio exceeded the ${StudioTimeoutSeconds}-second test timeout."
+        }
+
+        if (-not (Test-Path -LiteralPath $TestOutputPath -PathType Leaf)) {
+            throw "Roblox Studio did not create the expected test log: $TestOutputPath"
+        }
+
+        $testOutput = Get-Content -Raw -LiteralPath $TestOutputPath
+        if ($studioProcess.ExitCode -ne 0 -or -not $testOutput.Contains($SuccessSentinel)) {
+            Write-Host "--- Roblox Studio test output ---"
+            Write-Host $testOutput
+            Write-Host "--- End Roblox Studio test output ---"
+
+            if ($studioProcess.ExitCode -ne 0) {
+                throw "Roblox Studio exited with code $($studioProcess.ExitCode)."
+            }
+
+            throw "Roblox Studio output did not contain the success sentinel '$SuccessSentinel'."
+        }
+
+        Write-Host $testOutput
+    }
 }
 
 Write-Host ""

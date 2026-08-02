@@ -16,6 +16,7 @@ Last updated: 2026-08-02
 - Added unit coverage for stable IDs, registry success/failures, modifier ordering/failures, default isolation/serializability, and schema compatibility. The complete Studio run passes 5 suites and 19 tests.
 - Hardened the P1.2 validator after a red-path proof exposed Jest 3.10 aggregate-result quirks: failure counters are authoritative, and the success sentinel is assembled at runtime so echoed source cannot create a false positive.
 - Added `.gitattributes` LF rules for Luau and `wally.lock`, keeping StyLua checks and lockfile byte hashing reproducible after Windows checkouts.
+- Added a security-hardened GitHub Actions workflow that runs the non-Studio validation stages on pull requests, pushes to `main`, and manual dispatches. The normal local validator still runs Studio/Jest by default.
 
 ## Unfinished
 
@@ -37,6 +38,7 @@ Last updated: 2026-08-02
 - `src/shared/types/Result.luau` — shared explicit result/failure contract.
 - `tests/unit/*.spec.luau` — P1.2 harness test plus P1.3 unit coverage.
 - `scripts/run-tests.luau` and `scripts/validate.ps1` — hardened Studio test entry point and complete validator.
+- `.github/workflows/ci.yml` — read-only hosted validation with pinned checkout and checksum-verified Rokit bootstrap.
 - `.gitattributes` — checkout-stable LF rules for validated/hash-protected files.
 - `docs/ROADMAP.md` — P1.4 is the only selected next item; P2.1 follows after the interview decisions are recorded.
 
@@ -46,13 +48,15 @@ Last updated: 2026-08-02
 - Definitions are copied and recursively frozen at registry construction; player save defaults remain fresh mutable tables because gameplay transactions will replace their affected branches.
 - Modifier execution order is deterministic: ascending priority, then stable ID as the tie-breaker.
 - Persisted schema compatibility is reported now, while actual migration execution remains P5.1.
+- Hosted CI reuses the repository validator with an explicit `-SkipStudioTests` switch; full local validation remains required for Roblox-runtime behavior.
 
 ## Known issues
 
 - Jest Roblox 3.10 is still the Wally-backed development dependency until Roblox's 3.20 packages are published. Its aggregate `success` field is not trusted; zero failed-suite and failed-test counters plus the runtime-only sentinel define success.
 - The current content schema supports only the P1.3 definition fields and modifier targets needed by the representative seed. Later roadmap items must extend the schema deliberately with matching validation and tests.
 - `roblox/jest@3.20.0` and `roblox/jest-globals@3.20.0` are not yet available through the live Wally index.
+- GitHub-hosted runners do not include Roblox Studio, so they cannot execute the Jest Roblox runtime suite. The hosted check covers deterministic static/build stages, while the default local validator covers those stages plus Studio/Jest.
 
 ## Exact recommended next task
 
-Land P1.3 on `main`, then create a new branch for **P1.4 — Conduct a focused profession-progression design interview**. Decide and document profession level curves, action mastery, XP/offline rules, unlock cadence, tool/recipe/zone requirements, prototype pacing/caps, shared versus profession-specific behavior, and save/rebalancing implications. Do not start P2.1 until those accepted outcomes are recorded in the authoritative design documents.
+Create a new branch for **P1.4 — Conduct a focused profession-progression design interview**. Decide and document profession level curves, action mastery, XP/offline rules, unlock cadence, tool/recipe/zone requirements, prototype pacing/caps, shared versus profession-specific behavior, and save/rebalancing implications. Do not start P2.1 until those accepted outcomes are recorded in the authoritative design documents.

@@ -17,11 +17,11 @@ Last updated: 2026-08-02
 - Hardened the P1.2 validator after a red-path proof exposed Jest 3.10 aggregate-result quirks: failure counters are authoritative, and the success sentinel is assembled at runtime so echoed source cannot create a false positive.
 - Added `.gitattributes` LF rules for Luau and `wally.lock`, keeping StyLua checks and lockfile byte hashing reproducible after Windows checkouts.
 - Added a security-hardened GitHub Actions workflow that runs the non-Studio validation stages on pull requests, pushes to `main`, and manual dispatches. The normal local validator still runs Studio/Jest by default.
+- Completed **P1.4** on `codex/p1.4-profession-progression`: accepted the versioned Melvor-paced profession curve, continued XP above content caps, level-gated content, permanent Gold-bought tools, configurable XP multipliers, save/rebalancing rules, and the representative level-30 Mining/Forging ladder; deferred mastery.
 
 ## Unfinished
 
-- **P1.4** has not started. Profession progression still needs the newly scheduled focused design interview before runtime Mining work.
-- **P2.1** remains planned. No player profile is created at runtime, no Mining command/tick exists, and the client/server bootstraps remain intentionally empty.
+- **P2.1** is next. No player profile is created at runtime, no Mining command/tick exists, and the client/server bootstraps remain intentionally empty.
 - The world model is still empty, so a normal playtest avatar has no ground. World construction remains P2.3.
 - Persistence repositories, migrations, offline simulation, and live gameplay remain later roadmap work.
 - The final public name and detailed prototype balance remain deferred.
@@ -49,6 +49,14 @@ Last updated: 2026-08-02
 - Modifier execution order is deterministic: ascending priority, then stable ID as the tie-breaker.
 - Persisted schema compatibility is reported now, while actual migration execution remains P5.1.
 - Hosted CI reuses the repository validator with an explicit `-SkipStudioTests` switch; full local validation remains required for Roblox-runtime behavior.
+- P1.4 adopts Melvor-like long-tail profession pacing without copying its exact XP table. Level 30 is the first content cap and later levels are added alongside meaningful unlocks toward an eventual level-99 journey.
+- Profession content and Gold-bought tool qualities are level-gated. Higher tool quality primarily increases throughput by reducing action intervals through the shared modifier pipeline.
+- XP balance uses versioned server configuration with global, profession, action, and test-only multipliers kept separate from earned player modifiers.
+- The roadmap now contains a separate cross-cutting track to explore and build balance simulation and gameplay-testing tools.
+- Per-action mastery and the shared mastery pool are deferred until after the core profession loop is implemented and playtested. The private prototype awards profession XP only.
+- Profession XP continues accumulating above the current content cap. Effective levels and unlocks remain capped, but a later cap increase immediately applies stored XP and may unlock newly released levels.
+- The accepted `profession_curve.v1` is an explicit level 1–99 table reaching 15,000,000 XP, calibrated to place level 30 at about 0.1% and level 92 near halfway. Cumulative XP is save authority; published curve changes require explicit progress-preserving migrations.
+- The representative ladder unlocks Copper/Tin and Bronze Bars at level 1, Bronze representatives at 5/8, pickaxe upgrades at 10/20, Iron at 15/20, and Steel at 25/30. New accounts start with 100 Gold and buy the permanent 50-Gold starter pickaxe.
 
 ## Known issues
 
@@ -59,4 +67,4 @@ Last updated: 2026-08-02
 
 ## Exact recommended next task
 
-Create a new branch for **P1.4 — Conduct a focused profession-progression design interview**. Decide and document profession level curves, action mastery, XP/offline rules, unlock cadence, tool/recipe/zone requirements, prototype pacing/caps, shared versus profession-specific behavior, and save/rebalancing implications. Do not start P2.1 until those accepted outcomes are recorded in the authoritative design documents.
+Create a new branch for **P2.1 — Server-authoritative continuous Mining** after the P1.4 documentation branch is integrated. Implement one level-1 ore, profession XP through `profession_curve.v1`, owned-starter-tool requirements, continuous action/progress behavior, and tests. Keep Gold purchasing and selling in P2.2.

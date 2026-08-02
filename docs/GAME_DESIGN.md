@@ -91,6 +91,15 @@ The following direction is confirmed by the initial project brief:
 - The private prototype uses a Rojo filesystem-first workflow with Rokit-pinned tools, Wally-locked dependencies, strict Luau checks, and Roblox Studio CLI tests. Gameplay is split into explicit client/shared/server boundaries, with deterministic domain logic and server-authoritative transactions.
 - The P1.2 test harness temporarily pins the published development-only Jest Roblox 3.10.0 Wally packages and builds its test place as binary `.rbxl`; upgrade to 3.20.0 is deferred until those packages are available from the live Wally index. This does not change the production runtime or technical architecture.
 - After the P1.3 domain foundation and before implementing runtime Mining, conduct a focused design interview to agree profession progression: level curves, action mastery, XP and offline rules, unlock cadence, tools/recipes/zones, prototype pacing and caps, consistency across professions, and save/rebalancing implications.
+- Profession levels are a major long-term grind. Use a rising, long-tail curve with pacing comparable to Melvor Idle's base level-99 journey, without copying its exact XP table or balance values.
+- The current public-content cap is level 30 per launch profession. Profession caps rise toward 99 only as meaningful actions, resources, recipes, tools, zones, and rewards are added for those levels; do not create empty levels merely to display a larger cap.
+- Profession XP continues accumulating beyond the current content cap. The effective level and unlock checks remain capped, but stored total XP is preserved and may immediately produce higher effective levels when a later content release raises the cap.
+- The initial shared `profession_curve.v1` spans levels 1–99 and reaches 15,000,000 cumulative XP at level 99. It is an original exponential table calibrated so level 30 is about 0.1% of the journey and level 92 is approximately halfway; runtime level lookup uses explicit versioned integer thresholds.
+- Profession actions, gatherable resources, and recipes declare configured profession-level requirements. A player cannot perform or obtain their normal production reward from a locked action before meeting its requirement.
+- Gathering professions require an owned tool of the configured category. Tools such as pickaxes and future axes are bought with Gold in level-gated quality tiers; higher quality primarily increases resources per unit of time by shortening the related action interval.
+- Normal profession tools are permanent account unlocks after purchase. They cannot be sold, consumed, lost through dungeon death, or otherwise remove the player's only route into a gathering profession.
+- Profession and mastery XP use server-authoritative, versioned balance configuration with global, per-profession, and per-action multipliers. Prototype/test multipliers are separate from player-earned modifiers and can be tuned without rewriting stored player XP.
+- Action mastery levels and the shared mastery pool are deferred until after the core profession loop is implemented and playtested. The private prototype awards and displays profession XP only; existing extensibility for future mastery does not make mastery a runtime requirement.
 
 ## Working game description
 
@@ -292,8 +301,11 @@ A normal new profession should require mostly new configuration, assets, recipes
 ### Confirmed profession-tool progression
 
 - A profession may declare a required tool category. Mining requires a pickaxe; later professions can reuse the same system for axes, fishing rods, farming tools, and other appropriate tools.
-- Each tool is a data-defined item with a profession-level requirement, Gold price, visual reference, and modifiers such as Power, Speed, or Luck.
+- A gathering action cannot start unless the player owns and selects an eligible tool. Every normal tool quality is acquired with Gold; onboarding and economy balance must provide a guaranteed path to afford the first required tool so progression cannot deadlock.
+- Each tool is a data-defined item with a profession-level requirement, Gold price, quality tier, visual reference, and modifiers such as Power, Speed, or Luck.
 - The shop reveals or unlocks better pickaxes at configured Mining levels. Buying an upgrade permanently removes Gold from the economy and makes the profession visibly and mechanically more effective.
+- Purchased tool qualities are permanent account unlocks rather than ordinary sellable inventory. A tool cannot be consumed or selected for dungeon death loss, and buying a later quality does not destroy ownership of earlier qualities.
+- Higher tool quality primarily shortens the relevant action interval, so it increases resource and XP throughput without bypassing the resource's level requirement. Additional Power, yield, or Luck effects remain optional data-defined modifiers rather than assumptions built into every tool.
 - The selected tool affects both online and offline actions through the same modifier pipeline. Tool behavior must not be hard-coded specifically for Mining.
 - Prototype progression needs only a starter pickaxe and one purchasable upgrade to validate requirements, purchasing, equipping, visible appearance, and changed action speed.
 
@@ -698,15 +710,102 @@ Ordinary activity pets are rare permanent discoveries tied to activities and loc
 
 Source: [Melvor pet behavior](https://wiki.melvoridle.com/index.php/FAQ#Pets)
 
-## Progression recommendations
+## Profession progression
 
-- Use a modest launch cap, such as level 30–40 per profession, instead of creating a mostly empty level-99 grind.
-- Give each action its own mastery track, but keep the first version lighter than Melvor: a few visible breakpoints with understandable rewards.
-- Make upgrades change appearance or behavior, not only percentages.
-- Prefer unlocks, new choices, collection completion, and automation improvements over endless rebirth resets.
-- If a prestige system is added, frame it as opening a new region, camp tier, or expedition era. Preserve meaningful collections and paid cosmetics.
-- Start with an offline cap that supports a normal day away. The precise cap is an interview decision.
-- Simulate elapsed time from timestamps on the server; do not run an action every second while the player is absent.
+### Melvor reference points
+
+Melvor's base-game profession journey has mechanical progression through level 99, while its own guidance describes level 30 as an early point that does not take long and helps a player sample the skills. Higher levels take increasingly long and are commonly measured in hours or days. Its individual resources and recipes carry skill-level requirements: for example, Iron Ore requires Mining level 15, while Runite Ore requires level 80. Its Gold-bought pickaxes unlock at levels 1, 10, 20, 35, 50, 60, and 80 in the base journey and progressively reduce the Mining interval; axes use a similar ladder. This separation creates three overlapping goals: reach the level for a resource, earn Gold for the corresponding tool improvement, and then use the improved interval to accelerate the continuing grind.
+
+Sources:
+
+- [Melvor beginner guide and level-30 context](https://wiki.melvoridle.com/index.php?title=Beginners_Guide)
+- [Melvor FAQ on level 99 and long-duration skill progression](https://wiki.melvoridle.com/index.php/FAQ)
+- [Melvor Iron Ore level, XP, and interval](https://wiki.melvoridle.com/w/Iron_Ore)
+- [Melvor Runite Ore level, XP, and interval](https://wiki.melvoridle.com/w/Runite_Ore)
+- [Melvor Shop pickaxe and axe upgrade tables](https://wiki.melvoridle.com/w/Shop)
+
+### Confirmed direction
+
+- Profession leveling is a central long-term grind, not a short onboarding track. The curve should have Melvor-like long-tail pacing: early levels arrive often, later levels take progressively longer, and the full journey eventually extends toward level 99.
+- Level 30 is the first public-content cap, not the final shape of progression. A profession's configured cap rises only when corresponding content is added, allowing the same account XP history and curve to extend without inventing filler levels.
+- Total profession XP has no content-cap ceiling. Continue awarding it from eligible online and offline actions after the effective level reaches the current cap. The UI may show virtual progress beyond the cap, but level requirements use `min(levelFromTotalXp, configuredContentCap)`.
+- When a content update raises a profession cap, existing total XP is applied immediately. A veteran may therefore begin the update above the old cap and unlock new level-gated content without retraining XP already earned; other requirements and Gold costs still apply.
+- Use one shared curve shape by default so a level has a consistent meaning across professions. A profession may override its XP rate only through explicit balance configuration when its action cadence or gameplay model genuinely requires it.
+- Keep XP thresholds, base XP per action, and global/per-profession/per-action multipliers in versioned server balance data. The effective award composes these balance multipliers separately from earned player bonuses, with one documented rounding rule.
+- Studio and automated simulations may apply an explicit test-only multiplier for fast iteration. Production servers never accept a client-supplied multiplier, and analytics record the active balance version so results from different tuning passes are not mixed silently.
+- Resources, recipes, tools, and zones use stable definitions with explicit profession-level requirements. Locked content may be previewed for aspiration, but its normal action cannot start until every requirement is met.
+- Gathering requires the appropriate owned tool category. Higher Gold-bought quality tiers primarily reduce action intervals and therefore increase resources and XP per hour through the same modifier pipeline online and offline.
+- Offline profession XP follows the normal action simulator after elapsed time is reduced by the confirmed offline-efficiency setting. There is no second XP-only penalty. Mining still awards XP when a completed item's bank reward overflows, matching its online rule.
+- Upgrades should visibly change the tool or activity feedback as well as its numbers. Prefer durable unlocks, new choices, collection progress, and automation improvements over mandatory rebirth resets.
+
+### Initial shared XP curve
+
+`profession_curve.v1` is generated for levels 1 through 99 and stored as an explicit versioned integer threshold table. Its generation rule is:
+
+```text
+cumulativeXp(level) = round(
+    15,000,000 × (2^((level - 1) / 7) - 1) / (2^14 - 1)
+)
+```
+
+The runtime does not need to evaluate the formula. It reads the validated table so server simulation, tests, balance tools, and UI use identical integer thresholds.
+
+| Level | Cumulative XP |
+|---:|---:|
+| 1 | 0 |
+| 2 | 95 |
+| 5 | 445 |
+| 10 | 1,317 |
+| 15 | 2,747 |
+| 20 | 5,093 |
+| 25 | 8,943 |
+| 30 | 15,259 |
+| 50 | 116,279 |
+| 70 | 848,252 |
+| 80 | 2,284,875 |
+| 90 | 6,151,975 |
+| 92 | 7,499,542 |
+| 99 | 15,000,000 |
+
+This table defines the shape of progression, not its final wall-clock duration. Base XP per action and the configured global, profession, and action multipliers control real time-to-level during prototyping. The balance workbench must graph both thresholds and time projections before tuning changes are accepted.
+
+### Save and rebalancing rules
+
+- Cumulative profession XP is the authoritative persisted value. Displayed or effective level is derived from the save's curve version and the profession's current content cap; a stored level may exist only as a validated cache and must never override XP.
+- Record the profession-curve version with persisted progression. XP multiplier or action-balance changes do not rewrite already earned XP.
+- Before public persistence, prototype saves may be reset or explicitly migrated when fast iteration justifies it; the reset must be intentional and communicated, never an accidental consequence of loading newer content.
+- After public persistence begins, a published curve version is immutable. A replacement requires a versioned migration that preserves the player's current level and fractional progress toward the next level, then writes the equivalent cumulative XP on the new curve.
+- Raising only the content cap is not a curve migration. Existing total XP is re-evaluated against the unchanged curve and can immediately increase effective level.
+- Stable unlocks already granted to an account are not silently revoked by balance changes. Any exceptional eligibility change requires an explicit migration and player-facing release decision.
+
+### Representative level-30 unlock ladder
+
+This is the first progression spine for implementation and testing. It establishes representative milestones without committing to the complete public item catalog.
+
+| Level | Mining unlock | Forging/tool unlock |
+|---:|---|---|
+| 1 | Copper Ore and Tin Ore | Buy the starter pickaxe; smelt Bronze Bars |
+| 5 | — | Forge a representative Bronze weapon |
+| 8 | — | Forge a representative Bronze armour item |
+| 10 | — | Buy the first pickaxe upgrade; unlock additional Bronze recipes |
+| 15 | Iron Ore | Smelt Iron Bars |
+| 20 | Coal | Buy the second pickaxe upgrade; forge representative Iron equipment |
+| 25 | — | Smelt Steel Bars |
+| 30 | Current content cap | Forge representative Steel equipment |
+
+The private vertical slice implements only the entries needed by its roadmap stage. P2.1 starts with one level-1 ore and a test profile that already owns the starter pickaxe. P2.2 adds Gold, selling, starting currency, the real starter-tool purchase, and the first level-gated pickaxe upgrade. Later work fills out Copper/Tin production and the representative Bronze/Iron/Steel chain without changing the shared progression contract.
+
+### Initial-tool affordability
+
+- A new account starts with 100 Gold.
+- The starter pickaxe costs 50 Gold. Buying it teaches the tool-shop flow while leaving room for an early consumable or other onboarding choice.
+- The starter purchase has no random, paid, or combat prerequisite. A player who has not bought it always retains enough guaranteed onboarding value to acquire it; future changes must not create a no-tool/no-income deadlock.
+- Later tool prices are configuration calibrated by projected and observed time-to-afford, not embedded constants in profession code.
+- Tool quality changes are evaluated through the balance workbench using action interval, resources per hour, XP per hour, Gold acquisition, online efficiency, and offline efficiency.
+
+### Deferred mastery
+
+Per-action mastery and a shared mastery pool are not part of the private prototype. Mining, Forging, and later prototype profession actions award profession XP but no mastery XP. The stable-ID save and content architecture may retain an empty or optional future mastery field so the feature can be added without redesigning profession identity, but runtime code and UI should not simulate a placeholder system. Mastery design resumes only after the core profession loop has enough actions and playtest evidence to judge whether redistribution through a pool adds useful decisions.
 
 ## Competitive social design
 

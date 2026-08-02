@@ -13,11 +13,18 @@ Status legend: **DONE**, **NEXT**, **PLANNED**, **DEFERRED**. Only one item may 
 - **DONE P1.1:** Define the private-prototype technical architecture and toolchain in `docs/TECHNICAL_DESIGN.md`. Selected a Rojo/Rokit/Wally workflow; specified client/shared/server boundaries, data registries, save/versioning, server-authoritative transactions, testing, exact commands, and the smallest end-to-end implementation order. No gameplay implementation was included.
 - **DONE P1.2:** Scaffold the selected Roblox project structure and automated test harness, with a documented one-command validation workflow.
 - **DONE P1.3:** Implement and test stable-ID content registries, shared action definitions, modifier composition, and versioned player-data types using representative test data only.
-- **NEXT P1.4:** Conduct a focused design interview on profession progression before runtime Mining implementation. Decide the profession-level curve, action-mastery model, XP and offline-progression rules, unlock cadence, tool/recipe/zone requirements, prototype caps and pacing, cross-profession consistency, and save/rebalancing implications; record the accepted outcomes in the authoritative design documents.
+- **DONE P1.4:** Conduct the focused profession-progression design interview. Accepted a Melvor-paced level 1–99 curve with a level-30 content cap, continued XP above the cap, versioned configurable multipliers, level-gated content and permanent Gold-bought profession tools, explicit save/rebalancing rules, a representative Mining/Forging unlock ladder, and deferred mastery.
+- **DEFERRED:** Implement and balance per-action mastery and any shared mastery pool only after the core profession loop has enough actions and playtest evidence to justify the system.
+
+## Cross-cutting — Balance and gameplay-testing tools
+
+- **PLANNED T1.1:** Explore and select the tools to build or use for balance and gameplay testing. Cover XP-curve visualization, time-to-level projections, resource and Gold flows, tool/interval comparisons, offline results, deterministic combat scenarios, representative player progression, and playtest telemetry analysis. Prefer small repository-owned tools and exportable data, while evaluating spreadsheets or external analytics where they materially improve iteration.
+- **PLANNED T1.2:** Build the minimum balance workbench once the shared action scheduler and economy contracts exist. It should run seeded simulations faster than real time, apply named balance versions and configurable XP multipliers, compare online/offline and tool-quality scenarios, and export reproducible tables suitable for review.
+- **PLANNED T1.3:** Establish a gameplay-test workflow before private-prototype validation: scripted scenario checks, concise session feedback, balance-version tagging, observed-versus-expected progression reports, and explicit criteria for promoting a tuning change into production configuration.
 
 ## M2 — Mining and economy slice
 
-- **PLANNED P2.1:** Implement server-authoritative continuous Mining with one ore, Mining XP, a visible starter pickaxe, progress feedback, and tests.
+- **NEXT P2.1:** Implement server-authoritative continuous Mining with one level-1 ore, profession XP through `profession_curve.v1`, an owned visible starter-pickaxe fixture, progress feedback, explicit action requirements, and tests. The real Gold purchase flow remains P2.2.
 - **PLANNED P2.2:** Add the shared bank, full-bank overflow warning/telemetry, selling, Gold, and a level-gated pickaxe upgrade.
 - **PLANNED P2.3:** Build the minimal village and distinct underground mine entrance using audited free assets or primitives.
 

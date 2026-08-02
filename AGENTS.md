@@ -3,6 +3,11 @@
 ## Project
 This is a Roblox incremental idle rpg game.
 
+## Developer context
+- The developer is an experienced C#/.NET backend developer who is new to Roblox development.
+- Explain Roblox-specific tools, workflows, terminology, and design choices in plain language, using .NET/backend analogies where helpful.
+- Before requesting approval for a Roblox-specific decision, explain why it is needed, what changes, what remains unchanged, and the practical tradeoffs.
+
 ## Authoritative documents
 - `docs/GAME_DESIGN.md`: current agreed game design
 - `docs/DECISIONS.md`: accepted decisions and their reasoning

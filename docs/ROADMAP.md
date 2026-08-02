@@ -11,8 +11,8 @@ Status legend: **DONE**, **NEXT**, **PLANNED**, **DEFERRED**. Only one item may 
 ## M1 — Private-prototype technical foundation
 
 - **DONE P1.1:** Define the private-prototype technical architecture and toolchain in `docs/TECHNICAL_DESIGN.md`. Selected a Rojo/Rokit/Wally workflow; specified client/shared/server boundaries, data registries, save/versioning, server-authoritative transactions, testing, exact commands, and the smallest end-to-end implementation order. No gameplay implementation was included.
-- **NEXT P1.2:** Scaffold the selected Roblox project structure and automated test harness, with a documented one-command validation workflow.
-- **PLANNED P1.3:** Implement and test stable-ID content registries, shared action definitions, modifier composition, and versioned player-data types using representative test data only.
+- **DONE P1.2:** Scaffold the selected Roblox project structure and automated test harness, with a documented one-command validation workflow.
+- **NEXT P1.3:** Implement and test stable-ID content registries, shared action definitions, modifier composition, and versioned player-data types using representative test data only.
 
 ## M2 — Mining and economy slice
 

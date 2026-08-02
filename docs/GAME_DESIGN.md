@@ -89,6 +89,7 @@ The following direction is confirmed by the initial project brief:
 - The Rat King's signature active-combat attack is a clearly telegraphed forward lunge that attempts to scratch the player with both claws.
 - Gathering professions require an appropriate equipped tool. Mining begins with a pickaxe, and better pickaxes become purchasable with Gold after reaching configured Mining levels. This tool progression must be reusable by later professions.
 - The private prototype uses a Rojo filesystem-first workflow with Rokit-pinned tools, Wally-locked dependencies, strict Luau checks, and Roblox Studio CLI tests. Gameplay is split into explicit client/shared/server boundaries, with deterministic domain logic and server-authoritative transactions.
+- The P1.2 test harness temporarily pins the published development-only Jest Roblox 3.10.0 Wally packages and builds its test place as binary `.rbxl`; upgrade to 3.20.0 is deferred until those packages are available from the live Wally index. This does not change the production runtime or technical architecture.
 
 ## Working game description
 

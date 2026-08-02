@@ -355,12 +355,12 @@ Test-Path -LiteralPath ".\wally.lock"
 When both results are `True`, run:
 
 ```powershell
-wally install --locked
+wally install
 ```
 
-`--locked` makes the command fail rather than silently selecting different package versions. Generated package directories are local build inputs and should remain Git-ignored.
+Wally 0.3.2 does not provide a `--locked` switch. It uses the committed `wally.lock` during installation. The repository validator adds a stricter guard by hashing the lockfile before and after `wally install` and failing if it changes. This is comparable to restoring NuGet packages from a committed `packages.lock.json` and then verifying that restore did not rewrite it. Generated package directories are local build inputs and should remain Git-ignored.
 
-If Wally reports that the lockfile is outdated, do not delete it and do not run an unlocked update as a workaround. Pull the latest branch or ask whether a dependency update is intentional.
+If Wally reports that the lockfile is outdated or changes it, do not delete or commit the changed lockfile as a local workaround. Pull the latest branch or ask whether a dependency update is intentional.
 
 ## Step 12 — Run the complete validation
 
@@ -383,7 +383,7 @@ The script is expected to:
 5. generate a Rojo sourcemap;
 6. perform strict Luau analysis;
 7. build the production place;
-8. build the test place;
+8. build the test place as binary `.rbxl` so development-package source is preserved safely;
 9. locate the current Roblox Studio installation;
 10. run Jest Roblox inside Studio;
 11. fail unless the test-success marker appears.
@@ -461,7 +461,7 @@ git switch main
 git pull --ff-only
 git switch -c "type/short-description"
 rokit install
-wally install --locked
+wally install
 ```
 
 Use a conventional branch prefix such as `docs/`, `feat/`, `fix/`, or `test/`. Do not switch branches while you have unaccounted-for local changes.
@@ -502,7 +502,7 @@ When you pull repository changes:
 ```powershell
 git pull --ff-only
 rokit install
-wally install --locked
+wally install
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\validate.ps1
 ```
 
@@ -554,7 +554,7 @@ rokit authenticate
 
 Follow Rokit's prompts. Never commit the resulting credentials or paste an access token into a tracked file.
 
-### `wally install --locked` says the lockfile is stale
+### `wally install` says the lockfile is stale or changes it
 
 Make sure you pulled the latest commit. If the manifest changed without a matching lockfile change, stop and report it. Updating package resolution is a reviewed repository change, not a local setup repair.
 
@@ -652,7 +652,7 @@ Project setup after P1.2:
 - [ ] `rokit install` succeeds.
 - [ ] `rojo`, `wally`, `stylua`, `selene`, and `luau-lsp` report pinned versions.
 - [ ] `rojo plugin install` completes and Studio shows the Rojo plugin.
-- [ ] `wally install --locked` succeeds.
+- [ ] `wally install` succeeds without changing `wally.lock`.
 - [ ] `scripts/validate.ps1` passes.
 - [ ] `rojo serve default.project.json` connects to Studio.
 - [ ] An F5 playtest starts and stops successfully.

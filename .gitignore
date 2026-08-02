@@ -1,8 +1,20 @@
+# Generated builds, sourcemaps, logs, and installed Wally packages.
+/build/
+/Packages/
+/DevPackages/
+/sourcemap.json
+*.sourcemap.json
+
 # Roblox Studio place files and exported models are local working artifacts.
 *.rbxl
 *.rbxlx
 *.rbxm
 *.rbxmx
 
-# Roblox Studio lock files.
+# The minimal repository-owned world model is intentional source.
+!/place/world.rbxm
+
+# Roblox Studio lock and local recovery files.
 *.rbxl.lock
+*.rbxl.autosave
+*.rbxlx.autosave

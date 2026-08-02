@@ -1,0 +1,12 @@
+[package]
+name = "oysteinolsen/idle-dungeon-explorer"
+description = "Roblox incremental idle RPG private prototype"
+version = "0.1.0"
+license = "MIT"
+authors = ["Oystein Olsen"]
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+[dev-dependencies]
+Jest = "jsdotlua/jest@=3.10.0"
+JestGlobals = "jsdotlua/jest-globals@=3.10.0"

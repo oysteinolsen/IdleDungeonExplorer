@@ -71,13 +71,17 @@ Use the VS Code **Luau Language Server** and **StyLua** extensions, configured t
 
 Use Wally only for libraries that materially reduce risk or maintenance. Every dependency must be pinned in `wally.toml`, resolved in committed `wally.lock`, license-compatible, and reviewed before introduction. Production code should prefer small first-party modules over broad frameworks.
 
-The initial automated test dependency is current Jest Roblox:
+The initial automated test dependency is the latest version currently published in the Wally registry:
 
 ```toml
 [dev-dependencies]
-Jest = "roblox/jest@=3.20.0"
-JestGlobals = "roblox/jest-globals@=3.20.0"
+Jest = "jsdotlua/jest@=3.10.0"
+JestGlobals = "jsdotlua/jest-globals@=3.10.0"
 ```
+
+Jest Roblox 3.20.0 exists in Roblox's source repository but is not yet published to the live Wally index, so Wally cannot restore it or produce the required lockfile. P1.2 therefore uses the published 3.10.0 packages as a reviewed development-only fallback. The exact package graph remains committed in `wally.lock`; upgrading to 3.20.0 is a deliberate dependency change after those packages become available through Wally.
+
+The Wally-backed test place is built as binary `.rbxl`. Jest 3.10.0 contains a source comment with the XML CDATA terminator `]]>`, which causes an `.rbxlx` test build to truncate that ModuleScript when Studio loads it. The binary place preserves the source and passes the same Studio CLI test. Production remains an `.rbxlx` build because it excludes development packages and is useful as an inspectable text artifact.
 
 Do not introduce a client framework, networking framework, persistence library, dependency injection container, or promise library during the foundation milestone. Add one only when a concrete roadmap item demonstrates that the small first-party boundary is inadequate.
 
@@ -298,21 +302,23 @@ The script fails on the first failed stage and performs, in order:
 
 ```powershell
 rokit install
-wally install --locked
+wally install
 stylua --check src tests
 selene src tests
 rojo sourcemap test.project.json --output build/sourcemap.json
 luau-lsp analyze --sourcemap=build/sourcemap.json src tests
 rojo build default.project.json --output build/IdleDungeonExplorer.rbxlx
-rojo build test.project.json --output build/IdleDungeonExplorerTests.rbxlx
+rojo build test.project.json --output build/IdleDungeonExplorerTests.rbxl
 ```
+
+Wally 0.3.2 has no `--locked` option. The validation script requires the committed lockfile and compares its SHA-256 hash before and after `wally install`, failing if dependency resolution changes it.
 
 It then finds the newest installed `%LOCALAPPDATA%\Roblox\Versions\*\RobloxStudioBeta.exe` using PowerShell file enumeration (never `where.exe`) and invokes:
 
 ```powershell
 RobloxStudioBeta.exe `
     --task RunScript `
-    --localPlaceFile build/IdleDungeonExplorerTests.rbxlx `
+    --localPlaceFile build/IdleDungeonExplorerTests.rbxl `
     --runScriptFile scripts/run-tests.luau `
     --outputFile build/test-output.log `
     --quitAfterExecution

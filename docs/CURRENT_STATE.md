@@ -51,4 +51,4 @@ Last updated: 2026-08-02
 
 ## Exact recommended next task
 
-Land P1.2 on `main`, then create a new branch for **P1.3 — Implement and test stable-ID content registries, shared action definitions, modifier composition, and versioned player-data types using representative test data only**. Follow the P1.3 boundary in `docs/TECHNICAL_DESIGN.md`; do not implement a gameplay loop or begin P2.1.
+Create a new branch from `main` for **P1.3 — Implement and test stable-ID content registries, shared action definitions, modifier composition, and versioned player-data types using representative test data only**. Follow the P1.3 boundary in `docs/TECHNICAL_DESIGN.md`; do not implement a gameplay loop or begin P2.1.

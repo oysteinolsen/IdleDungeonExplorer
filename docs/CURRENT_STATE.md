@@ -12,11 +12,14 @@ Last updated: 2026-08-02
 - Completed **P1.1** in `docs/TECHNICAL_DESIGN.md`: selected the Rojo filesystem-first workflow, pinned-tool/package policy, client/shared/server boundaries, deterministic domain model, server transaction flow, versioned persistence design, test strategy, exact validation commands, and implementation order.
 - Recorded technical decision **D-016** and advanced **P1.2** to the only selected next item.
 - Added `docs/LOCAL_DEV_SETUP.md`, a beginner-oriented Windows guide covering machine prerequisites, repository bootstrap, project tools, Studio/Rojo connection, validation, daily work, updates, and troubleshooting.
+- Began the local environment setup. Rokit is installed at `C:\Users\oyste\.rokit`, `rokit.exe` exists under `.rokit\bin`, and the persistent user `PATH` includes that bin directory.
 
 ## Unfinished
 
 - No Roblox game code, Studio place, project scaffold, automated tests, or assets have been created.
-- The documented toolchain has not yet been installed or scaffolded in the repository, and its commands have not yet been exercised against the installed Roblox Studio version.
+- Rokit has no project tools to install yet: the repository does not contain the P1.2 `rokit.toml`, the global Rokit manifest has an empty `[tools]` table, and `.rokit\tool-storage` currently contains only its cache metadata.
+- Rojo, Wally, StyLua, Selene, and Luau Language Server therefore remain uninstalled until P1.2 scaffolds and verifies the pinned project manifest.
+- The documented build and test commands have not yet been exercised against the installed Roblox Studio version.
 - The final public name and detailed prototype balance remain deferred and do not block implementation.
 
 ## Relevant files
@@ -43,7 +46,8 @@ Last updated: 2026-08-02
 
 - No executable test or validation workflow exists yet; the commands in `docs/TECHNICAL_DESIGN.md` are the specification that P1.2 must scaffold and verify.
 - Roblox Studio is evergreen, so P1.2 must locate the installed executable, record its version, and prove the documented `RunScript` invocation on this machine.
+- Shells and applications opened before Rokit installation do not see the new `.rokit\bin` `PATH` entry. Restart PowerShell, VS Code, and Codex before verifying `Get-Command rokit` and `rokit --version`.
 
 ## Exact recommended next task
 
-Complete roadmap item **P1.2 — Scaffold the selected Roblox project structure and automated test harness**. Follow `docs/TECHNICAL_DESIGN.md`: add the pinned tool and Wally manifests, Rojo production/test mappings, strict lint/format/type configurations, empty bootstraps, a minimal Jest Roblox smoke test, and `scripts/validate.ps1`. Run the one-command validation successfully against the installed Roblox Studio CLI. Do not implement content registries or gameplay during P1.2.
+Complete roadmap item **P1.2 — Scaffold the selected Roblox project structure and automated test harness**. Start by adding the reviewed `rokit.toml`, restart the shell, run `rokit install`, and verify the five pinned project-tool commands. Then add the Wally manifests, Rojo production/test mappings, strict lint/format/type configurations, empty bootstraps, a minimal Jest Roblox smoke test, and `scripts/validate.ps1`. Run the one-command validation successfully against the installed Roblox Studio CLI. Do not implement content registries or gameplay during P1.2.

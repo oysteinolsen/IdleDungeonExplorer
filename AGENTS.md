@@ -13,6 +13,7 @@ This is a Roblox incremental idle rpg game.
 - Read the authoritative documents before planning or implementing.
 - Do not change an accepted design decision without asking.
 - Work on only one roadmap item at a time.
+- Before starting a session, create a new branch to work on, unless we are continuing on a previous roadmap step.
 - Before ending a session, update `docs/CURRENT_STATE.md`.
 - Record important new decisions in `docs/GAME_DESIGN.md`.
 - Run relevant tests and review the diff before declaring work complete.

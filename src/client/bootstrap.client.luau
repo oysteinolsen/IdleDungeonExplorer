@@ -1,3 +1,5 @@
 --!strict
 
--- Client runtime initialization begins in P2.1.
+local MiningController = require(script.Parent.controllers.MiningController)
+
+MiningController.start()

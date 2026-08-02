@@ -6,7 +6,7 @@ type ContentSet = ContentTypes.ContentSet
 
 local RepresentativeContent = {}
 
-RepresentativeContent.CONTENT_VERSION = "prototype.v1"
+RepresentativeContent.CONTENT_VERSION = "prototype.v2"
 
 function RepresentativeContent.create(): ContentSet
 	return {
@@ -14,9 +14,9 @@ function RepresentativeContent.create(): ContentSet
 		items = {
 			{
 				kind = "item",
-				id = "item.bronze_ore",
+				id = "item.copper_ore",
 				schemaVersion = 1,
-				displayName = "Bronze Ore",
+				displayName = "Copper Ore",
 				displayOrder = 100,
 				tags = { "item_tag.material", "item_tag.ore" },
 				stackable = true,
@@ -34,17 +34,47 @@ function RepresentativeContent.create(): ContentSet
 				deathLossEligible = true,
 			},
 		},
+		professions = {
+			{
+				kind = "profession",
+				id = "profession.mining",
+				schemaVersion = 1,
+				displayName = "Mining",
+				displayOrder = 10,
+				curveId = "profession_curve.v1",
+				contentLevelCap = 30,
+				xpMultiplier = 1,
+			},
+		},
+		tools = {
+			{
+				kind = "tool",
+				id = "tool.starter_pickaxe",
+				schemaVersion = 1,
+				displayName = "Starter Pickaxe",
+				displayOrder = 90,
+				professionId = "profession.mining",
+				categoryId = "tool_category.pickaxe",
+				requiredProfessionLevel = 1,
+				modifierIds = { "modifier.mining_speed" },
+			},
+		},
 		actions = {
 			{
 				kind = "action",
-				id = "action.mine_bronze",
+				id = "action.mine_copper",
 				schemaVersion = 1,
-				displayName = "Mine Bronze",
+				displayName = "Mine Copper",
 				displayOrder = 100,
 				baseDurationSeconds = 3,
-				outputItemId = "item.bronze_ore",
+				professionId = "profession.mining",
+				requiredProfessionLevel = 1,
+				requiredToolId = "tool.starter_pickaxe",
+				professionXp = 7,
+				xpMultiplier = 1,
+				outputItemId = "item.copper_ore",
 				outputQuantity = 1,
-				modifierIds = { "modifier.mining_speed" },
+				modifierIds = {},
 			},
 		},
 		modifiers = {

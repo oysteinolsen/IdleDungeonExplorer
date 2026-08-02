@@ -1,6 +1,12 @@
 --!strict
 
-export type DefinitionKind = "item" | "equipment_slot" | "action" | "modifier"
+export type DefinitionKind =
+	"item"
+	| "equipment_slot"
+	| "profession"
+	| "tool"
+	| "action"
+	| "modifier"
 export type ModifierTarget = "action_duration" | "output_quantity" | "profession_xp"
 export type ModifierOperation = "add" | "multiply"
 
@@ -25,6 +31,29 @@ export type EquipmentSlotDefinition = {
 	deathLossEligible: boolean,
 }
 
+export type ProfessionDefinition = {
+	kind: "profession",
+	id: string,
+	schemaVersion: number,
+	displayName: string,
+	displayOrder: number,
+	curveId: string,
+	contentLevelCap: number,
+	xpMultiplier: number,
+}
+
+export type ToolDefinition = {
+	kind: "tool",
+	id: string,
+	schemaVersion: number,
+	displayName: string,
+	displayOrder: number,
+	professionId: string,
+	categoryId: string,
+	requiredProfessionLevel: number,
+	modifierIds: { string },
+}
+
 export type ActionDefinition = {
 	kind: "action",
 	id: string,
@@ -32,6 +61,11 @@ export type ActionDefinition = {
 	displayName: string,
 	displayOrder: number,
 	baseDurationSeconds: number,
+	professionId: string,
+	requiredProfessionLevel: number,
+	requiredToolId: string,
+	professionXp: number,
+	xpMultiplier: number,
 	outputItemId: string,
 	outputQuantity: number,
 	modifierIds: { string },
@@ -53,6 +87,8 @@ export type ModifierDefinition = {
 export type Definition =
 	ItemDefinition
 	| EquipmentSlotDefinition
+	| ProfessionDefinition
+	| ToolDefinition
 	| ActionDefinition
 	| ModifierDefinition
 
@@ -60,6 +96,8 @@ export type ContentSet = {
 	contentVersion: string,
 	items: { ItemDefinition },
 	equipmentSlots: { EquipmentSlotDefinition },
+	professions: { ProfessionDefinition },
+	tools: { ToolDefinition },
 	actions: { ActionDefinition },
 	modifiers: { ModifierDefinition },
 }

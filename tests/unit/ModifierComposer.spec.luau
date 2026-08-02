@@ -57,10 +57,10 @@ describe("ModifierComposer", function()
 		if not registryResult.ok then
 			error(`Registry creation failed: {registryResult.code}`)
 		end
-		local action = registryResult.value.getAction("action.mine_bronze")
+		local action = registryResult.value.getAction("action.mine_copper")
 		assert(action ~= nil, "Representative action is missing")
-		local modifiers = registryResult.value.getActionModifiers(action.id)
-		assert(modifiers ~= nil, "Representative action modifiers are missing")
+		local modifiers = registryResult.value.getToolModifiers(action.requiredToolId)
+		assert(modifiers ~= nil, "Representative tool modifiers are missing")
 
 		local result =
 			ModifierComposer.compose(action.baseDurationSeconds, "action_duration", modifiers)

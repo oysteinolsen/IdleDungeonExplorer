@@ -60,7 +60,7 @@ describe("PlayerDataSchema", function()
 
 		first.data.currencies["currency.gold"] = 50
 		table.insert(first.data.bank.entries, {
-			itemId = "item.bronze_ore",
+			itemId = "item.copper_ore",
 			quantity = 1,
 			instanceId = nil,
 		})

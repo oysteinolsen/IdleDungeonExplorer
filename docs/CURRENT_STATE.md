@@ -24,11 +24,14 @@ Last updated: 2026-08-02
 - Added a minimal desktop/small-phone-sized Mining HUD and a primitive visible starter-pickaxe fixture. The temporary P2.1 profile owns the tool directly; Gold purchase behavior remains explicitly deferred to P2.2.
 - Full validation passes formatting, lint, strict Luau analysis, production/test Rojo builds, and 9 Studio/Jest suites with 32 tests. Coverage includes curve checkpoints/caps, action timing/remainders/bounds, network rejection, registry cross-references, requirements, XP configuration, recorder failure, and authoritative start/advance/stop behavior.
 - Completed the required P2.1 manual Roblox Studio playtest on desktop and a small-phone layout. Start/Stop Mining, repeating progress, Copper Ore/XP rewards, the visible starter pickaxe, respawn replacement, and HUD usability passed.
+- Implemented the P2.3 repository-owned world scene on `codex/p2.3-minimal-village` after explicitly reordering it ahead of P2.2: a grounded village square, spawn, blacksmith, supply shop, town hall, road, landmarked mine portal, descending enclosed tunnel, and underground copper chamber.
+- Replaced the empty binary world placeholder with a reviewable Rojo JSON model built entirely from Roblox primitives and built-in materials. No third-party models, textures, meshes, packages, or asset IDs were introduced.
+- Added P2.3 Studio integration coverage for the required scene hierarchy, anchored geometry, asset-free boundary, and three representative copper nodes. Full validation passes 10 suites and 35 tests.
 
 ## Unfinished
 
-- **P2.2** is next: bank capacity/overflow, selling, Gold balances, and the real tool purchase/upgrade transaction. P2.1 temporarily stacks committed ore without enforcing capacity.
-- The world model is still empty, so a normal playtest avatar has no ground. World construction remains P2.3.
+- **P2.3** remains the only in-progress item until its desktop and small-phone visual playtest is recorded. Its implementation and automated Studio checks pass.
+- **P2.2** intentionally follows P2.3: bank capacity/overflow, selling, Gold balances, and the real tool purchase/upgrade transaction. P2.1 temporarily stacks committed ore without enforcing capacity.
 - Durable persistence, migrations, and offline simulation remain later roadmap work; P2.1 state intentionally lasts only for the current server session.
 - The final public name and detailed prototype balance remain deferred.
 
@@ -49,6 +52,8 @@ Last updated: 2026-08-02
 - `src/shared/domain/PlayerDataSchema.luau` — schema compatibility and fresh default factory.
 - `src/shared/types/Result.luau` — shared explicit result/failure contract.
 - `tests/unit/*.spec.luau` and `tests/integration/MiningService.spec.luau` — deterministic domain, contract, content, and application coverage.
+- `place/world.model.json` — reviewable primitive village, mine entrance/tunnel, underground chamber, lighting fixtures, and copper-node scene source.
+- `tests/integration/WorldModel.spec.luau` — Studio checks for required world structure, anchoring, asset-free construction, and copper fixtures.
 - `scripts/run-tests.luau` and `scripts/validate.ps1` — hardened Studio test entry point and complete validator.
 - `.github/workflows/ci.yml` — read-only hosted validation with pinned checkout and checksum-verified Rokit bootstrap.
 - `.gitattributes` — checkout-stable LF rules for validated/hash-protected files.
@@ -72,16 +77,19 @@ Last updated: 2026-08-02
 - The P2.1 owned starter pickaxe is an explicit runtime fixture, not an economy exception. P2.2 replaces that shortcut with the accepted Gold purchase flow and upgrade transaction.
 - Continuous action progress is derived from server timestamps. The server alone commits completed cycles, ore, and XP; the client prediction is visual and reconciles whenever a snapshot arrives.
 - Event recording occurs after the authoritative profile replacement. Recorder failure is returned for observability but does not roll back a valid gameplay commit.
+- P2.3 was explicitly moved ahead of P2.2 at the developer's request. It remains isolated to world construction; accepted bank, Gold, selling, and tool-purchase behavior remains unchanged and belongs to P2.2.
+- The P2.3 prototype environment uses only repository-declared Roblox primitive parts, built-in materials, and lights. This satisfies the accepted free-asset constraint while keeping later art replacement straightforward.
 
 ## Known issues
 
 - Jest Roblox 3.10 is still the Wally-backed development dependency until Roblox's 3.20 packages are published. Its aggregate `success` field is not trusted; zero failed-suite and failed-test counters plus the runtime-only sentinel define success.
 - The current content schema supports the profession/tool/action fields and three modifier targets needed by P2.1. Later roadmap items must extend it deliberately with matching validation and tests.
 - The P2.1 bank write intentionally has no capacity/overflow behavior. Do not treat it as the reusable bank transaction; P2.2 owns that implementation and its idempotency/failure tests.
-- The world remains empty despite the passing P2.1 gameplay/UI check, so the avatar may fall during play. World construction remains P2.3.
+- The P2.3 copper nodes are representative visual fixtures. The P2.1 Mining HUD still starts the authoritative action globally rather than through spatial node interaction; connecting scene interaction to the existing command remains later vertical-slice integration work.
+- P2.3 still requires a recorded desktop and small-phone visual playtest before its roadmap status changes to DONE.
 - `roblox/jest@3.20.0` and `roblox/jest-globals@3.20.0` are not yet available through the live Wally index.
 - GitHub-hosted runners do not include Roblox Studio, so they cannot execute the Jest Roblox runtime suite. The hosted check covers deterministic static/build stages, while the default local validator covers those stages plus Studio/Jest.
 
 ## Exact recommended next task
 
-After `codex/p2.1-continuous-mining` is integrated, create a new branch for **P2.2 — Bank and economy path**. Implement the reusable bank transaction first, including capacity and explicit overflow outcomes, then selling/Gold and the accepted level-gated pickaxe purchase/upgrade flow with failure and idempotency tests.
+Open the P2.3 production build in Roblox Studio and verify the village-to-mine route, collision, spawn, tunnel/chamber readability, lighting, Mining HUD, and small-phone presentation. Record the result, mark P2.3 DONE, then create a new branch for **P2.2 — Bank and economy path**.

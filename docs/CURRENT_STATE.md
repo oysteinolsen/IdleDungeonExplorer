@@ -18,12 +18,18 @@ Last updated: 2026-08-02
 - Added `.gitattributes` LF rules for Luau and `wally.lock`, keeping StyLua checks and lockfile byte hashing reproducible after Windows checkouts.
 - Added a security-hardened GitHub Actions workflow that runs the non-Studio validation stages on pull requests, pushes to `main`, and manual dispatches. The normal local validator still runs Studio/Jest by default.
 - Completed **P1.4** on `codex/p1.4-profession-progression`: accepted the versioned Melvor-paced profession curve, continued XP above content caps, level-gated content, permanent Gold-bought tools, configurable XP multipliers, save/rebalancing rules, and the representative level-30 Mining/Forging ladder; deferred mastery.
+- Implemented the P2.1 runtime path on `codex/p2.1-continuous-mining`: an in-memory player-profile repository, server-authoritative start/stop commands, deterministic continuous-action simulation, atomic Copper Ore and Mining XP commits, effective-level calculation through `profession_curve.v1`, and post-commit event recording.
+- Extended the immutable content model and registry with profession and tool definitions, explicit action requirements, content caps, and separate profession/action XP multipliers. The representative `prototype.v2` set contains Copper Ore, Mining, a starter pickaxe, and the level-1 Copper Mining action.
+- Added strict versioned Mining command/snapshot contracts. The client sends intent only; it renders server-owned XP, level, ore, and action state while predicting only the progress bar from server timestamps.
+- Added a minimal desktop/small-phone-sized Mining HUD and a primitive visible starter-pickaxe fixture. The temporary P2.1 profile owns the tool directly; Gold purchase behavior remains explicitly deferred to P2.2.
+- Full validation passes formatting, lint, strict Luau analysis, production/test Rojo builds, and 9 Studio/Jest suites with 32 tests. Coverage includes curve checkpoints/caps, action timing/remainders/bounds, network rejection, registry cross-references, requirements, XP configuration, recorder failure, and authoritative start/advance/stop behavior.
+- Completed the required P2.1 manual Roblox Studio playtest on desktop and a small-phone layout. Start/Stop Mining, repeating progress, Copper Ore/XP rewards, the visible starter pickaxe, respawn replacement, and HUD usability passed.
 
 ## Unfinished
 
-- **P2.1** is next. No player profile is created at runtime, no Mining command/tick exists, and the client/server bootstraps remain intentionally empty.
+- **P2.2** is next: bank capacity/overflow, selling, Gold balances, and the real tool purchase/upgrade transaction. P2.1 temporarily stacks committed ore without enforcing capacity.
 - The world model is still empty, so a normal playtest avatar has no ground. World construction remains P2.3.
-- Persistence repositories, migrations, offline simulation, and live gameplay remain later roadmap work.
+- Durable persistence, migrations, and offline simulation remain later roadmap work; P2.1 state intentionally lasts only for the current server session.
 - The final public name and detailed prototype balance remain deferred.
 
 ## Relevant files
@@ -33,14 +39,20 @@ Last updated: 2026-08-02
 - `src/shared/content/ContentRegistry.luau` — immutable registry construction and cross-reference validation.
 - `src/shared/content/RepresentativeContent.luau` — the four representative P1.3 definitions.
 - `src/shared/domain/ModifierComposer.luau` — pure ordered modifier application.
+- `src/shared/domain/ProfessionCurve.luau` — accepted explicit level 1–99 thresholds and effective content-cap calculation.
+- `src/shared/domain/MiningActionSimulator.luau` — pure timestamp-based continuous-cycle proposal.
+- `src/shared/net/MiningContracts.luau` — strict versioned client command and server snapshot contracts.
+- `src/server/application/MiningService.luau` — requirement checks, authoritative commits, snapshots, and event recording.
+- `src/server/infrastructure/InMemoryPlayerProfileRepository.luau` — isolated session-only profile adapter.
+- `src/client/controllers/MiningController.luau` and `src/client/ui/MiningHud.luau` — intent transport and timestamp-reconciled progress presentation.
 - `src/shared/types/PlayerDataTypes.luau` — save-envelope and player-data DTO types.
 - `src/shared/domain/PlayerDataSchema.luau` — schema compatibility and fresh default factory.
 - `src/shared/types/Result.luau` — shared explicit result/failure contract.
-- `tests/unit/*.spec.luau` — P1.2 harness test plus P1.3 unit coverage.
+- `tests/unit/*.spec.luau` and `tests/integration/MiningService.spec.luau` — deterministic domain, contract, content, and application coverage.
 - `scripts/run-tests.luau` and `scripts/validate.ps1` — hardened Studio test entry point and complete validator.
 - `.github/workflows/ci.yml` — read-only hosted validation with pinned checkout and checksum-verified Rokit bootstrap.
 - `.gitattributes` — checkout-stable LF rules for validated/hash-protected files.
-- `docs/ROADMAP.md` — P1.4 is the only selected next item; P2.1 follows after the interview decisions are recorded.
+- `docs/ROADMAP.md` — P2.1 is complete and P2.2 is the only selected next item.
 
 ## Decisions made
 
@@ -57,14 +69,19 @@ Last updated: 2026-08-02
 - Profession XP continues accumulating above the current content cap. Effective levels and unlocks remain capped, but a later cap increase immediately applies stored XP and may unlock newly released levels.
 - The accepted `profession_curve.v1` is an explicit level 1–99 table reaching 15,000,000 XP, calibrated to place level 30 at about 0.1% and level 92 near halfway. Cumulative XP is save authority; published curve changes require explicit progress-preserving migrations.
 - The representative ladder unlocks Copper/Tin and Bronze Bars at level 1, Bronze representatives at 5/8, pickaxe upgrades at 10/20, Iron at 15/20, and Steel at 25/30. New accounts start with 100 Gold and buy the permanent 50-Gold starter pickaxe.
+- The P2.1 owned starter pickaxe is an explicit runtime fixture, not an economy exception. P2.2 replaces that shortcut with the accepted Gold purchase flow and upgrade transaction.
+- Continuous action progress is derived from server timestamps. The server alone commits completed cycles, ore, and XP; the client prediction is visual and reconciles whenever a snapshot arrives.
+- Event recording occurs after the authoritative profile replacement. Recorder failure is returned for observability but does not roll back a valid gameplay commit.
 
 ## Known issues
 
 - Jest Roblox 3.10 is still the Wally-backed development dependency until Roblox's 3.20 packages are published. Its aggregate `success` field is not trusted; zero failed-suite and failed-test counters plus the runtime-only sentinel define success.
-- The current content schema supports only the P1.3 definition fields and modifier targets needed by the representative seed. Later roadmap items must extend the schema deliberately with matching validation and tests.
+- The current content schema supports the profession/tool/action fields and three modifier targets needed by P2.1. Later roadmap items must extend it deliberately with matching validation and tests.
+- The P2.1 bank write intentionally has no capacity/overflow behavior. Do not treat it as the reusable bank transaction; P2.2 owns that implementation and its idempotency/failure tests.
+- The world remains empty despite the passing P2.1 gameplay/UI check, so the avatar may fall during play. World construction remains P2.3.
 - `roblox/jest@3.20.0` and `roblox/jest-globals@3.20.0` are not yet available through the live Wally index.
 - GitHub-hosted runners do not include Roblox Studio, so they cannot execute the Jest Roblox runtime suite. The hosted check covers deterministic static/build stages, while the default local validator covers those stages plus Studio/Jest.
 
 ## Exact recommended next task
 
-Create a new branch for **P2.1 — Server-authoritative continuous Mining** after the P1.4 documentation branch is integrated. Implement one level-1 ore, profession XP through `profession_curve.v1`, owned-starter-tool requirements, continuous action/progress behavior, and tests. Keep Gold purchasing and selling in P2.2.
+After `codex/p2.1-continuous-mining` is integrated, create a new branch for **P2.2 — Bank and economy path**. Implement the reusable bank transaction first, including capacity and explicit overflow outcomes, then selling/Gold and the accepted level-gated pickaxe purchase/upgrade flow with failure and idempotency tests.

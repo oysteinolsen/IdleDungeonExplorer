@@ -24,8 +24,8 @@ Status legend: **DONE**, **NEXT**, **PLANNED**, **DEFERRED**. Only one item may 
 
 ## M2 — Mining and economy slice
 
-- **NEXT P2.1:** Implement server-authoritative continuous Mining with one level-1 ore, profession XP through `profession_curve.v1`, an owned visible starter-pickaxe fixture, progress feedback, explicit action requirements, and tests. The real Gold purchase flow remains P2.2.
-- **PLANNED P2.2:** Add the shared bank, full-bank overflow warning/telemetry, selling, Gold, and a level-gated pickaxe upgrade.
+- **DONE P2.1:** Implemented server-authoritative continuous Mining with one level-1 ore, profession XP through `profession_curve.v1`, an owned visible starter-pickaxe fixture, progress feedback, explicit action requirements, tests, and a passing desktop/small-phone Studio playtest. The real Gold purchase flow remains P2.2.
+- **NEXT P2.2:** Add the shared bank, full-bank overflow warning/telemetry, selling, Gold, and a level-gated pickaxe upgrade.
 - **PLANNED P2.3:** Build the minimal village and distinct underground mine entrance using audited free assets or primitives.
 
 ## M3 — Forging and equipment slice

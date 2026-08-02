@@ -11,15 +11,20 @@ type EquipmentSlotDefinition = ContentTypes.EquipmentSlotDefinition
 type Failure = Result.Failure
 type ItemDefinition = ContentTypes.ItemDefinition
 type ModifierDefinition = ContentTypes.ModifierDefinition
+type ProfessionDefinition = ContentTypes.ProfessionDefinition
+type ToolDefinition = ContentTypes.ToolDefinition
 
 export type Registry = {
 	contentVersion: string,
 	get: (id: string) -> Definition?,
 	getItem: (id: string) -> ItemDefinition?,
 	getEquipmentSlot: (id: string) -> EquipmentSlotDefinition?,
+	getProfession: (id: string) -> ProfessionDefinition?,
+	getTool: (id: string) -> ToolDefinition?,
 	getAction: (id: string) -> ActionDefinition?,
 	getModifier: (id: string) -> ModifierDefinition?,
 	getActionModifiers: (actionId: string) -> { ModifierDefinition }?,
+	getToolModifiers: (toolId: string) -> { ModifierDefinition }?,
 	all: () -> { Definition },
 }
 
@@ -42,6 +47,14 @@ end
 
 local function isFinite(value: number): boolean
 	return value == value and math.abs(value) ~= math.huge
+end
+
+local function isPositiveInteger(value: number): boolean
+	return isFinite(value) and value > 0 and value == math.floor(value)
+end
+
+local function isPositiveMultiplier(value: number): boolean
+	return isFinite(value) and value > 0
 end
 
 local function validateCommon(definition: Definition, expectedNamespace: string): Failure?
@@ -143,6 +156,31 @@ local function copyDefinition(definition: Definition): Definition
 			deathLossEligible = definition.deathLossEligible,
 		}
 		return table.freeze(copy)
+	elseif definition.kind == "profession" then
+		local copy: ProfessionDefinition = {
+			kind = definition.kind,
+			id = definition.id,
+			schemaVersion = definition.schemaVersion,
+			displayName = definition.displayName,
+			displayOrder = definition.displayOrder,
+			curveId = definition.curveId,
+			contentLevelCap = definition.contentLevelCap,
+			xpMultiplier = definition.xpMultiplier,
+		}
+		return table.freeze(copy)
+	elseif definition.kind == "tool" then
+		local copy: ToolDefinition = {
+			kind = definition.kind,
+			id = definition.id,
+			schemaVersion = definition.schemaVersion,
+			displayName = definition.displayName,
+			displayOrder = definition.displayOrder,
+			professionId = definition.professionId,
+			categoryId = definition.categoryId,
+			requiredProfessionLevel = definition.requiredProfessionLevel,
+			modifierIds = copyStringList(definition.modifierIds),
+		}
+		return table.freeze(copy)
 	elseif definition.kind == "action" then
 		local copy: ActionDefinition = {
 			kind = definition.kind,
@@ -151,6 +189,11 @@ local function copyDefinition(definition: Definition): Definition
 			displayName = definition.displayName,
 			displayOrder = definition.displayOrder,
 			baseDurationSeconds = definition.baseDurationSeconds,
+			professionId = definition.professionId,
+			requiredProfessionLevel = definition.requiredProfessionLevel,
+			requiredToolId = definition.requiredToolId,
+			professionXp = definition.professionXp,
+			xpMultiplier = definition.xpMultiplier,
 			outputItemId = definition.outputItemId,
 			outputQuantity = definition.outputQuantity,
 			modifierIds = copyStringList(definition.modifierIds),
@@ -198,6 +241,8 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 	local definitionsById: { [string]: Definition } = {}
 	local itemsById: { [string]: ItemDefinition } = {}
 	local slotsById: { [string]: EquipmentSlotDefinition } = {}
+	local professionsById: { [string]: ProfessionDefinition } = {}
+	local toolsById: { [string]: ToolDefinition } = {}
 	local actionsById: { [string]: ActionDefinition } = {}
 	local modifiersById: { [string]: ModifierDefinition } = {}
 	local orderedDefinitions: { Definition } = {}
@@ -269,6 +314,74 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 		slotsById[slot.id] = definitionsById[slot.id] :: EquipmentSlotDefinition
 	end
 
+	for _, profession in content.professions do
+		if profession.kind ~= "profession" then
+			return fail(
+				"content.kind_mismatch",
+				`Profession '{profession.id}' has kind '{profession.kind}'`
+			)
+		end
+		local validationFailure = addDefinition(profession, "profession")
+		if validationFailure ~= nil then
+			return validationFailure
+		end
+
+		if not StableId.hasNamespace(profession.curveId, "profession_curve") then
+			return fail(
+				"content.invalid_reference_id",
+				`Profession '{profession.id}' has invalid curve ID '{profession.curveId}'`
+			)
+		end
+		if not isPositiveInteger(profession.contentLevelCap) then
+			return fail(
+				"content.invalid_level_requirement",
+				`Profession '{profession.id}' must have a positive integer content level cap`
+			)
+		end
+		if not isPositiveMultiplier(profession.xpMultiplier) then
+			return fail(
+				"content.invalid_xp_multiplier",
+				`Profession '{profession.id}' must have a positive finite XP multiplier`
+			)
+		end
+		professionsById[profession.id] = definitionsById[profession.id] :: ProfessionDefinition
+	end
+
+	for _, tool in content.tools do
+		if tool.kind ~= "tool" then
+			return fail("content.kind_mismatch", `Tool '{tool.id}' has kind '{tool.kind}'`)
+		end
+		local validationFailure = addDefinition(tool, "tool")
+		if validationFailure ~= nil then
+			return validationFailure
+		end
+
+		if not StableId.hasNamespace(tool.professionId, "profession") then
+			return fail(
+				"content.invalid_reference_id",
+				`Tool '{tool.id}' has invalid profession ID '{tool.professionId}'`
+			)
+		end
+		if not StableId.hasNamespace(tool.categoryId, "tool_category") then
+			return fail(
+				"content.invalid_reference_id",
+				`Tool '{tool.id}' has invalid category ID '{tool.categoryId}'`
+			)
+		end
+		if not isPositiveInteger(tool.requiredProfessionLevel) then
+			return fail(
+				"content.invalid_level_requirement",
+				`Tool '{tool.id}' must have a positive integer profession level requirement`
+			)
+		end
+		local modifiersFailure =
+			validateStableIdList(tool.id, tool.modifierIds, "modifier", "modifier ID", false)
+		if modifiersFailure ~= nil then
+			return modifiersFailure
+		end
+		toolsById[tool.id] = definitionsById[tool.id] :: ToolDefinition
+	end
+
 	for _, action in content.actions do
 		if action.kind ~= "action" then
 			return fail("content.kind_mismatch", `Action '{action.id}' has kind '{action.kind}'`)
@@ -284,14 +397,40 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 				`Action '{action.id}' must have a positive finite duration`
 			)
 		end
-		if
-			not isFinite(action.outputQuantity)
-			or action.outputQuantity <= 0
-			or action.outputQuantity ~= math.floor(action.outputQuantity)
-		then
+		if not isPositiveInteger(action.outputQuantity) then
 			return fail(
 				"content.invalid_quantity",
 				`Action '{action.id}' must have a positive integer output quantity`
+			)
+		end
+		if not StableId.hasNamespace(action.professionId, "profession") then
+			return fail(
+				"content.invalid_reference_id",
+				`Action '{action.id}' has invalid profession ID '{action.professionId}'`
+			)
+		end
+		if not isPositiveInteger(action.requiredProfessionLevel) then
+			return fail(
+				"content.invalid_level_requirement",
+				`Action '{action.id}' must have a positive integer profession level requirement`
+			)
+		end
+		if not StableId.hasNamespace(action.requiredToolId, "tool") then
+			return fail(
+				"content.invalid_reference_id",
+				`Action '{action.id}' has invalid tool ID '{action.requiredToolId}'`
+			)
+		end
+		if not isPositiveInteger(action.professionXp) then
+			return fail(
+				"content.invalid_profession_xp",
+				`Action '{action.id}' must award positive integer profession XP`
+			)
+		end
+		if not isPositiveMultiplier(action.xpMultiplier) then
+			return fail(
+				"content.invalid_xp_multiplier",
+				`Action '{action.id}' must have a positive finite XP multiplier`
 			)
 		end
 		if not StableId.hasNamespace(action.outputItemId, "item") then
@@ -398,11 +537,61 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 		end
 	end
 
+	for _, tool in toolsById do
+		local profession = professionsById[tool.professionId]
+		if profession == nil then
+			return fail(
+				"content.missing_reference",
+				`Tool '{tool.id}' references missing profession '{tool.professionId}'`
+			)
+		end
+		if tool.requiredProfessionLevel > profession.contentLevelCap then
+			return fail(
+				"content.requirement_above_cap",
+				`Tool '{tool.id}' requires level {tool.requiredProfessionLevel} above profession cap {profession.contentLevelCap}`
+			)
+		end
+		for _, modifierId in tool.modifierIds do
+			if modifiersById[modifierId] == nil then
+				return fail(
+					"content.missing_reference",
+					`Tool '{tool.id}' references missing modifier '{modifierId}'`
+				)
+			end
+		end
+	end
+
 	for _, action in actionsById do
 		if itemsById[action.outputItemId] == nil then
 			return fail(
 				"content.missing_reference",
 				`Action '{action.id}' references missing item '{action.outputItemId}'`
+			)
+		end
+		local profession = professionsById[action.professionId]
+		if profession == nil then
+			return fail(
+				"content.missing_reference",
+				`Action '{action.id}' references missing profession '{action.professionId}'`
+			)
+		end
+		if action.requiredProfessionLevel > profession.contentLevelCap then
+			return fail(
+				"content.requirement_above_cap",
+				`Action '{action.id}' requires level {action.requiredProfessionLevel} above profession cap {profession.contentLevelCap}`
+			)
+		end
+		local tool = toolsById[action.requiredToolId]
+		if tool == nil then
+			return fail(
+				"content.missing_reference",
+				`Action '{action.id}' references missing tool '{action.requiredToolId}'`
+			)
+		end
+		if tool.professionId ~= action.professionId then
+			return fail(
+				"content.incompatible_tool_profession",
+				`Action '{action.id}' and tool '{tool.id}' belong to different professions`
 			)
 		end
 		for _, modifierId in action.modifierIds do
@@ -459,6 +648,28 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 	table.sort(orderedDefinitions, definitionsSort)
 	local frozenDefinitions = table.freeze(orderedDefinitions)
 
+	local function resolveModifiers(modifierIds: { string }): { ModifierDefinition }
+		local collected: { ModifierDefinition } = {}
+		local included: { [string]: boolean } = {}
+		local function collect(modifierId: string)
+			if included[modifierId] then
+				return
+			end
+			included[modifierId] = true
+			local modifier = modifiersById[modifierId]
+			for _, dependencyId in modifier.dependencies do
+				collect(dependencyId)
+			end
+			table.insert(collected, modifier)
+		end
+
+		for _, modifierId in modifierIds do
+			collect(modifierId)
+		end
+		table.sort(collected, modifiersSort)
+		return table.freeze(collected)
+	end
+
 	local registry: Registry = {
 		contentVersion = content.contentVersion,
 		get = function(id: string): Definition?
@@ -469,6 +680,12 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 		end,
 		getEquipmentSlot = function(id: string): EquipmentSlotDefinition?
 			return slotsById[id]
+		end,
+		getProfession = function(id: string): ProfessionDefinition?
+			return professionsById[id]
+		end,
+		getTool = function(id: string): ToolDefinition?
+			return toolsById[id]
 		end,
 		getAction = function(id: string): ActionDefinition?
 			return actionsById[id]
@@ -481,26 +698,14 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 			if action == nil then
 				return nil
 			end
-
-			local collected: { ModifierDefinition } = {}
-			local included: { [string]: boolean } = {}
-			local function collect(modifierId: string)
-				if included[modifierId] then
-					return
-				end
-				included[modifierId] = true
-				local modifier = modifiersById[modifierId]
-				for _, dependencyId in modifier.dependencies do
-					collect(dependencyId)
-				end
-				table.insert(collected, modifier)
+			return resolveModifiers(action.modifierIds)
+		end,
+		getToolModifiers = function(toolId: string): { ModifierDefinition }?
+			local tool = toolsById[toolId]
+			if tool == nil then
+				return nil
 			end
-
-			for _, modifierId in action.modifierIds do
-				collect(modifierId)
-			end
-			table.sort(collected, modifiersSort)
-			return table.freeze(collected)
+			return resolveModifiers(tool.modifierIds)
 		end,
 		all = function(): { Definition }
 			return table.freeze(table.clone(frozenDefinitions))

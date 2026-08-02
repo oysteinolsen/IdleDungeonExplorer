@@ -1,6 +1,6 @@
 --!strict
 
-local SUCCESS_SENTINEL = "IDLE_DUNGEON_EXPLORER_TESTS_OK"
+local SUCCESS_SENTINEL = table.concat({ "IDLE_DUNGEON", "_EXPLORER_TESTS_OK" })
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local DevPackages = ReplicatedStorage:FindFirstChild("DevPackages")
@@ -26,7 +26,7 @@ if status ~= "Resolved" then
 	error(`Jest returned an unexpected promise status: {tostring(status)}`)
 end
 
-if not result.results.success then
+if result.results.numFailedTestSuites > 0 or result.results.numFailedTests > 0 then
 	error("Jest completed with one or more failing tests")
 end
 

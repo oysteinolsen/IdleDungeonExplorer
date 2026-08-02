@@ -4,51 +4,55 @@ Last updated: 2026-08-02
 
 ## Completed
 
-- Completed the initial research and ten-round design interview, then recorded the agreed direction in `docs/GAME_DESIGN.md`, `docs/DECISIONS.md`, and `docs/ROADMAP.md`.
-- Completed **P1.1** in `docs/TECHNICAL_DESIGN.md`: selected the Rojo filesystem-first workflow, pinned tool/package policy, client/shared/server boundaries, deterministic domain model, server transaction flow, versioned persistence design, test strategy, exact validation commands, and implementation order.
-- Completed **P1.2** on `chore/p1.2-project-scaffold` with production/test Rojo mappings, strict configuration, client/server bootstraps, planned source/test boundaries, ignore rules, and a minimal repository-owned `place/world.rbxm`.
-- Pinned and verified Rojo 7.7.0, Wally 0.3.2, StyLua 2.5.2, Selene 0.31.0, and Luau Language Server 1.69.0 through Rokit.
-- Added the committed Wally lockfile for the development-only `jsdotlua/jest` and `jsdotlua/jest-globals` 3.10.0 packages. The graph contains 48 restored packages and is excluded from production builds.
-- Added `tests/jest.config.luau`, a strict smoke spec, and `scripts/run-tests.luau` with explicit rejected/failure handling and a unique success sentinel.
-- Added `scripts/validate.ps1`, which verifies exact tool versions, protects the Wally lockfile by hash, checks formatting/lint/types, checks production/test boundaries, builds both places, locates the current Studio installation, enforces a timeout, and requires both a zero exit code and the Jest success sentinel.
-- Proved the one-command validator against Roblox Studio `0.732.0.7321040`: all stages pass, including one Jest suite and one test through Studio CLI.
-- Installed the matching Rojo Studio plugin, connected Studio to `localhost:34872`, and completed an F5 start/stop smoke test without errors.
-- Updated the technical/setup documentation for Wally 0.3.2 lockfile behavior, the approved Jest 3.10.0 fallback, and the binary `.rbxl` test-place requirement.
-- Added repository guidance to explain Roblox-specific decisions in plain language with .NET/backend analogies before requesting approval.
+- Completed product discovery and recorded the accepted game direction in `docs/GAME_DESIGN.md`, `docs/DECISIONS.md`, and `docs/ROADMAP.md`.
+- Completed **P1.1**: selected the Rojo filesystem-first architecture, client/shared/server boundaries, deterministic domain model, versioned persistence direction, and implementation order.
+- Completed **P1.2**: scaffolded the pinned Rojo/Rokit/Wally project, strict static checks, production/test mappings, Studio-hosted Jest harness, one-command validator, and beginner-oriented local setup guide.
+- Completed **P1.3** on `codex/p1.3-domain-seed` with stable lowercase namespaced-ID validation and typed item, equipment-slot, action, and modifier definitions.
+- Added a validated immutable content registry. Startup construction rejects malformed/duplicate IDs, unsupported schemas, invalid numeric values, missing references, incompatible equipment tags, duplicate list values, and circular modifier dependencies.
+- Added one representative content set: Bronze Ore, Weapon slot, Mine Bronze action, and Mining Speed modifier. The registry exposes typed lookup, deterministic ordered iteration, and dependency-expanded action modifiers without exposing mutable backing tables.
+- Added pure deterministic modifier composition with explicit results, stable priority/ID ordering, target validation, and invalid-result protection.
+- Added the first versioned Roblox-serializable player-data DTOs and default factory: Gold, 40-slot bank, equipment/profession/unlock maps, optional active-action snapshot, 16-entry unsecured loot, 50% offline efficiency, collections, and bounded statistic counters.
+- Added schema compatibility reporting for current, migratable, future, and invalid versions. Full save loading/migrations remain P5.1.
+- Added unit coverage for stable IDs, registry success/failures, modifier ordering/failures, default isolation/serializability, and schema compatibility. The complete Studio run passes 5 suites and 19 tests.
+- Hardened the P1.2 validator after a red-path proof exposed Jest 3.10 aggregate-result quirks: failure counters are authoritative, and the success sentinel is assembled at runtime so echoed source cannot create a false positive.
+- Added `.gitattributes` LF rules for Luau and `wally.lock`, keeping StyLua checks and lockfile byte hashing reproducible after Windows checkouts.
 
 ## Unfinished
 
-- **P1.3** has not started. No content registry, player-data model, modifier implementation, or gameplay system exists yet.
-- The P1.2 world model is intentionally empty, so a playtest avatar spawns without ground and falls. World construction remains P2.3.
-- The final public name and detailed prototype balance remain deferred and do not block implementation.
+- **P1.4** has not started. Profession progression still needs the newly scheduled focused design interview before runtime Mining work.
+- **P2.1** remains planned. No player profile is created at runtime, no Mining command/tick exists, and the client/server bootstraps remain intentionally empty.
+- The world model is still empty, so a normal playtest avatar has no ground. World construction remains P2.3.
+- Persistence repositories, migrations, offline simulation, and live gameplay remain later roadmap work.
+- The final public name and detailed prototype balance remain deferred.
 
 ## Relevant files
 
-- `AGENTS.md` — repository working rules and developer-context guidance.
-- `docs/GAME_DESIGN.md` — complete living design and research record.
-- `docs/DECISIONS.md` — accepted-decision index, including the P1.2 implementation amendment to D-016.
-- `docs/ROADMAP.md` — ordered milestones; P1.3 is the only selected next item.
-- `docs/TECHNICAL_DESIGN.md` — accepted private-prototype architecture, toolchain, test strategy, and implementation order.
-- `docs/LOCAL_DEV_SETUP.md` — beginner-oriented Windows development workflow and troubleshooting guide.
-- `rokit.toml` — exact project CLI tool pins.
-- `wally.toml` and `wally.lock` — exact development dependency declaration and resolution.
-- `default.project.json` and `test.project.json` — production and test-only Rojo DataModel mappings.
-- `scripts/validate.ps1` and `scripts/run-tests.luau` — one-command validation and Studio Jest entry point.
-- `tests/jest.config.luau` and `tests/unit/TestHarness.spec.luau` — Jest discovery configuration and foundation smoke test.
+- `src/shared/content/StableId.luau` — stable namespaced-ID syntax and namespace checks.
+- `src/shared/content/ContentTypes.luau` — typed definition contracts.
+- `src/shared/content/ContentRegistry.luau` — immutable registry construction and cross-reference validation.
+- `src/shared/content/RepresentativeContent.luau` — the four representative P1.3 definitions.
+- `src/shared/domain/ModifierComposer.luau` — pure ordered modifier application.
+- `src/shared/types/PlayerDataTypes.luau` — save-envelope and player-data DTO types.
+- `src/shared/domain/PlayerDataSchema.luau` — schema compatibility and fresh default factory.
+- `src/shared/types/Result.luau` — shared explicit result/failure contract.
+- `tests/unit/*.spec.luau` — P1.2 harness test plus P1.3 unit coverage.
+- `scripts/run-tests.luau` and `scripts/validate.ps1` — hardened Studio test entry point and complete validator.
+- `.gitattributes` — checkout-stable LF rules for validated/hash-protected files.
+- `docs/ROADMAP.md` — P1.4 is the only selected next item; P2.1 follows after the interview decisions are recorded.
 
 ## Decisions made
 
-- Keep D-016's Rojo/Rokit/Wally/Studio architecture unchanged.
-- Use the currently published development-only Jest Roblox 3.10.0 Wally packages until Roblox's 3.20.0 packages reach the live Wally index.
-- Build the Wally-backed test place as binary `.rbxl`, because Jest 3.10.0 contains a source `]]>` sequence that is truncated in an XML `.rbxlx` place. Keep the dependency-free production build as `.rbxlx`.
-- Treat `wally.lock` like a NuGet `packages.lock.json`: commit it, restore from it, and make validation fail if restore changes it.
+- P1.3 implements accepted decisions D-002 and D-016 without changing them.
+- Definitions are copied and recursively frozen at registry construction; player save defaults remain fresh mutable tables because gameplay transactions will replace their affected branches.
+- Modifier execution order is deterministic: ascending priority, then stable ID as the tie-breaker.
+- Persisted schema compatibility is reported now, while actual migration execution remains P5.1.
 
 ## Known issues
 
-- `roblox/jest@3.20.0` and `roblox/jest-globals@3.20.0` exist in Roblox's source manifests but are not published in the live Wally index. Upgrade only after publication and a complete validation run.
-- Wally 0.3.2 has no `--locked` option. The validator enforces locked behavior by requiring the lockfile and comparing its SHA-256 hash before and after restore.
-- Shells and applications opened before Rokit installation may not see the persistent `.rokit\bin` `PATH` entry until restarted.
+- Jest Roblox 3.10 is still the Wally-backed development dependency until Roblox's 3.20 packages are published. Its aggregate `success` field is not trusted; zero failed-suite and failed-test counters plus the runtime-only sentinel define success.
+- The current content schema supports only the P1.3 definition fields and modifier targets needed by the representative seed. Later roadmap items must extend the schema deliberately with matching validation and tests.
+- `roblox/jest@3.20.0` and `roblox/jest-globals@3.20.0` are not yet available through the live Wally index.
 
 ## Exact recommended next task
 
-Create a new branch from `main` for **P1.3 — Implement and test stable-ID content registries, shared action definitions, modifier composition, and versioned player-data types using representative test data only**. Follow the P1.3 boundary in `docs/TECHNICAL_DESIGN.md`; do not implement a gameplay loop or begin P2.1.
+Land P1.3 on `main`, then create a new branch for **P1.4 — Conduct a focused profession-progression design interview**. Decide and document profession level curves, action mastery, XP/offline rules, unlock cadence, tool/recipe/zone requirements, prototype pacing/caps, shared versus profession-specific behavior, and save/rebalancing implications. Do not start P2.1 until those accepted outcomes are recorded in the authoritative design documents.

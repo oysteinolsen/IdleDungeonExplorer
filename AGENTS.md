@@ -22,3 +22,4 @@ This is a Roblox incremental idle rpg game.
 - Before ending a session, update `docs/CURRENT_STATE.md`.
 - Record important new decisions in `docs/GAME_DESIGN.md`.
 - Run relevant tests and review the diff before declaring work complete.
+- When creating a pull request, include a plain-language summary of what was implemented, a concrete list of what to test and how to test it, and a clearly highlighted section for known or possible issues.

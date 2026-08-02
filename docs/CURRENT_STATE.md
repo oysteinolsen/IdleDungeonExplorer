@@ -7,13 +7,16 @@ Last updated: 2026-08-02
 - Completed the initial research and ten-round design interview.
 - Documented the agreed Roblox idle-RPG design, prototype boundary, extensible profession model, economy, combat, offline progression, monetization guardrails, and asset strategy.
 - Moved the authoritative design to `docs/GAME_DESIGN.md`.
-- Created `docs/DECISIONS.md` and `docs/ROADMAP.md`; roadmap item **P1.1** is the only selected next item.
+- Created `docs/DECISIONS.md` and `docs/ROADMAP.md`.
 - Corrected `AGENTS.md` to identify the project as a Roblox incremental idle RPG.
+- Completed **P1.1** in `docs/TECHNICAL_DESIGN.md`: selected the Rojo filesystem-first workflow, pinned-tool/package policy, client/shared/server boundaries, deterministic domain model, server transaction flow, versioned persistence design, test strategy, exact validation commands, and implementation order.
+- Recorded technical decision **D-016** and advanced **P1.2** to the only selected next item.
+- Added `docs/LOCAL_DEV_SETUP.md`, a beginner-oriented Windows guide covering machine prerequisites, repository bootstrap, project tools, Studio/Rojo connection, validation, daily work, updates, and troubleshooting.
 
 ## Unfinished
 
 - No Roblox game code, Studio place, project scaffold, automated tests, or assets have been created.
-- The technical architecture and development toolchain are not yet selected or documented.
+- The documented toolchain has not yet been installed or scaffolded in the repository, and its commands have not yet been exercised against the installed Roblox Studio version.
 - The final public name and detailed prototype balance remain deferred and do not block implementation.
 
 ## Relevant files
@@ -23,6 +26,8 @@ Last updated: 2026-08-02
 - `docs/DECISIONS.md` — concise accepted-decision index; created.
 - `docs/ROADMAP.md` — ordered milestones and selected work item; created.
 - `docs/CURRENT_STATE.md` — this session handoff; updated.
+- `docs/TECHNICAL_DESIGN.md` — accepted private-prototype architecture, toolchain, commands, test strategy, and implementation order; created.
+- `docs/LOCAL_DEV_SETUP.md` — detailed first-time and daily Windows development-environment guide; created.
 
 ## Decisions made
 
@@ -31,11 +36,14 @@ Last updated: 2026-08-02
 - Use a classic village, separate underground mine and dungeon entrances, one-monster encounters, and a Rat King boss.
 - Use a shared bank, Gold-funded tool/storage progression, reduced offline progress, risky unsecured dungeon loot, and non-aggressive monetization.
 - Use free, licensed, stylized low-poly assets and stage visible equipment complexity.
+- Use Rojo with Rokit-pinned Rojo/Wally/StyLua/Selene/Luau Language Server tools and Wally-locked Jest Roblox packages.
+- Keep valuable state server-authoritative; isolate deterministic domain logic from Roblox adapters and run automated tests in a locally built place through the documented Studio CLI.
 
 ## Known issues
 
-- No executable test or validation workflow exists yet; only Markdown consistency can currently be checked.
+- No executable test or validation workflow exists yet; the commands in `docs/TECHNICAL_DESIGN.md` are the specification that P1.2 must scaffold and verify.
+- Roblox Studio is evergreen, so P1.2 must locate the installed executable, record its version, and prove the documented `RunScript` invocation on this machine.
 
 ## Exact recommended next task
 
-Complete roadmap item **P1.1 — Define the private-prototype technical architecture and toolchain**. Create `docs/TECHNICAL_DESIGN.md` that selects a solo-friendly Roblox Studio workflow, specifies client/shared/server module boundaries, data definitions, save/versioning and server-authority rules, test strategy, exact local commands, and the smallest end-to-end implementation order. Do not implement gameplay or start another roadmap item during P1.1.
+Complete roadmap item **P1.2 — Scaffold the selected Roblox project structure and automated test harness**. Follow `docs/TECHNICAL_DESIGN.md`: add the pinned tool and Wally manifests, Rojo production/test mappings, strict lint/format/type configurations, empty bootstraps, a minimal Jest Roblox smoke test, and `scripts/validate.ps1`. Run the one-command validation successfully against the installed Roblox Studio CLI. Do not implement content registries or gameplay during P1.2.

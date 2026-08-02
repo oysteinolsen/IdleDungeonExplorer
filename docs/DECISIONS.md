@@ -91,3 +91,9 @@ This file is the concise index of significant accepted decisions and their reaso
 **Decision:** The final invented classic-fantasy brand will use the subtitle **Idle RPG**; the exact name is deferred. Record meaningful server-authoritative state transitions through a versioned event boundary from the first playable build.
 
 **Reasoning:** The subtitle preserves discoverability without constraining future professions, while early analytics enables evidence-based balance and leaderboard decisions.
+
+## D-016 — Technical architecture and toolchain
+
+**Decision:** Use a Rojo filesystem-first Roblox workflow with Rokit-pinned tools, Wally-locked dependencies, strict Luau plus StyLua/Selene/Luau Language Server validation, and Jest Roblox tests run in a locally built place through the documented Studio CLI. Separate client presentation, shared safe contracts/pure logic, and server authority/adapters; persist versioned stable-ID data through explicit server transactions.
+
+**Reasoning:** This keeps source reviewable in Git, exercises tests in the real Roblox runtime, supports deterministic online/offline rules, and remains small enough for one developer without sacrificing save safety or future profession extensibility.

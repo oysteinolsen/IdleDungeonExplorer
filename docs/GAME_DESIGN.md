@@ -88,6 +88,7 @@ The following direction is confirmed by the initial project brief:
 - Aborting an unfinished Forging item returns the ingredients reserved for that item; completed items and their consumed ingredients are unaffected.
 - The Rat King's signature active-combat attack is a clearly telegraphed forward lunge that attempts to scratch the player with both claws.
 - Gathering professions require an appropriate equipped tool. Mining begins with a pickaxe, and better pickaxes become purchasable with Gold after reaching configured Mining levels. This tool progression must be reusable by later professions.
+- The private prototype uses a Rojo filesystem-first workflow with Rokit-pinned tools, Wally-locked dependencies, strict Luau checks, and Roblox Studio CLI tests. Gameplay is split into explicit client/shared/server boundaries, with deterministic domain logic and server-authoritative transactions.
 
 ## Working game description
 

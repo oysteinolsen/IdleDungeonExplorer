@@ -1,6 +1,6 @@
 # Accepted Decisions
 
-This file is the concise index of significant accepted decisions and their reasoning. `docs/GAME_DESIGN.md` remains authoritative for complete rules, research, and deferred details.
+This file is the concise index of significant accepted decisions and their reasoning. [`docs/design/README.md`](design/README.md) maps roadmap items to the authoritative detailed briefs. The original discovery record is archived for provenance and is not a required session read.
 
 ## D-001 — Product and prototype scope
 

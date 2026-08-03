@@ -1,10 +1,10 @@
 # Current State
 
-Last updated: 2026-08-02
+Last updated: 2026-08-03
 
 ## Completed
 
-- Completed product discovery and recorded the accepted game direction in `docs/GAME_DESIGN.md`, `docs/DECISIONS.md`, and `docs/ROADMAP.md`.
+- Completed product discovery and recorded the accepted game direction in the roadmap-aligned briefs under `docs/design/`, `docs/DECISIONS.md`, and `docs/ROADMAP.md`.
 - Completed **P1.1**: selected the Rojo filesystem-first architecture, client/shared/server boundaries, deterministic domain model, versioned persistence direction, and implementation order.
 - Completed **P1.2**: scaffolded the pinned Rojo/Rokit/Wally project, strict static checks, production/test mappings, Studio-hosted Jest harness, one-command validator, and beginner-oriented local setup guide.
 - Completed **P1.3** on `codex/p1.3-domain-seed` with stable lowercase namespaced-ID validation and typed item, equipment-slot, action, and modifier definitions.
@@ -27,6 +27,7 @@ Last updated: 2026-08-02
 - Implemented the P2.3 repository-owned world scene on `codex/p2.3-minimal-village` after explicitly reordering it ahead of P2.2: a grounded village square, spawn, blacksmith, supply shop, town hall, road, landmarked mine portal, descending enclosed tunnel, and underground copper chamber.
 - Replaced the empty binary world placeholder with a reviewable Rojo JSON model built entirely from Roblox primitives and built-in materials. No third-party models, textures, meshes, packages, or asset IDs were introduced.
 - Added P2.3 Studio integration coverage for the required scene hierarchy, anchored geometry, asset-free boundary, and three representative copper nodes. Full validation passes 10 suites and 35 tests.
+- Split the monolithic game design into focused roadmap-item briefs under `docs/design/`; replaced `docs/GAME_DESIGN.md` with a small reading index, moved P1.1 technical design to its roadmap-aligned path, updated repository guidance, and retained the original discovery brief as a non-required archive.
 
 ## Unfinished
 
@@ -57,7 +58,9 @@ Last updated: 2026-08-02
 - `scripts/run-tests.luau` and `scripts/validate.ps1` — hardened Studio test entry point and complete validator.
 - `.github/workflows/ci.yml` — read-only hosted validation with pinned checkout and checksum-verified Rokit bootstrap.
 - `.gitattributes` — checkout-stable LF rules for validated/hash-protected files.
-- `docs/ROADMAP.md` — P2.1 is complete and P2.2 is the only selected next item.
+- `docs/GAME_DESIGN.md` and `docs/design/README.md` — small session entry point and roadmap-to-brief map.
+- `docs/design/P2.3-village-and-mine.md` — focused design and remaining visual-playtest checklist for the active item.
+- `docs/ROADMAP.md` — P2.3 remains the only selected next item; P2.2 follows it.
 
 ## Decisions made
 

@@ -30,7 +30,8 @@ Last updated: 2026-08-04
 - Split the monolithic game design into focused roadmap-item briefs under `docs/design/`; replaced `docs/GAME_DESIGN.md` with a small reading index, moved P1.1 technical design to its roadmap-aligned path, updated repository guidance, and retained the original discovery brief as a non-required archive.
 - Addressed the first P2.3 visual-playtest failures: removed collision from the square brazier, extended and re-angled the mine shaft to overlap both endpoints, sealed the chamber front around the shaft, and added explicit seam regression checks.
 - Replaced the always-visible bottom Mining controls with per-node Roblox proximity prompts and a compact top HUD shown only while active or reporting an error. The server independently enforces a 10-stud distance from the ore surface and automatically stops Mining when the avatar walks away.
-- Added deterministic Mining-location coverage. Full validation passes formatting, lint, strict analysis, both Rojo builds, and 11 Studio/Jest suites with 38 tests.
+- Refined Mining UI under accepted decision D-018 and current Roblox guidance: default single-visible proximity prompts provide platform input hints; the core-UI-safe responsive HUD separates activity from stats, hides while idle, uses a selectable 48-pixel Stop target, and reports out-of-range stopping without showing an invalid action.
+- Added deterministic Mining-location and adaptive-HUD coverage. Full validation passes formatting, lint, strict analysis, both Rojo builds, and 12 Studio/Jest suites with 39 tests.
 
 ## Unfinished
 
@@ -87,6 +88,7 @@ Last updated: 2026-08-04
 - Event recording occurs after the authoritative profile replacement. Recorder failure is returned for observability but does not roll back a valid gameplay commit.
 - P2.3 was explicitly moved ahead of P2.2 at the developer's request. It remains isolated to world construction; accepted bank, Gold, selling, and tool-purchase behavior remains unchanged and belongs to P2.2.
 - The P2.3 prototype environment uses only repository-declared Roblox primitive parts, built-in materials, and lights. This satisfies the accepted free-asset constraint while keeping later art replacement straightforward.
+- D-018 establishes an adaptive Roblox-native interface baseline: use familiar cross-platform affordances, core/device safe areas, responsive constraints, clear hierarchy and contrast, contextual visibility, selectable controls, and mobile-first targets while retaining the game's fantasy tone.
 
 ## Known issues
 

@@ -598,11 +598,13 @@
                   "Name": "MiningPrompt",
                   "ClassName": "ProximityPrompt",
                   "Properties": {
-                    "ActionText": "Mine Copper",
+                    "ActionText": "Mine",
                     "ObjectText": "Copper Ore",
+                    "ClickablePrompt": true,
+                    "Exclusivity": "OneGlobally",
                     "HoldDuration": 0,
                     "MaxActivationDistance": 10,
-                    "RequiresLineOfSight": false
+                    "RequiresLineOfSight": true
                   }
                 }
               ]
@@ -623,11 +625,13 @@
                   "Name": "MiningPrompt",
                   "ClassName": "ProximityPrompt",
                   "Properties": {
-                    "ActionText": "Mine Copper",
+                    "ActionText": "Mine",
                     "ObjectText": "Copper Ore",
+                    "ClickablePrompt": true,
+                    "Exclusivity": "OneGlobally",
                     "HoldDuration": 0,
                     "MaxActivationDistance": 10,
-                    "RequiresLineOfSight": false
+                    "RequiresLineOfSight": true
                   }
                 }
               ]
@@ -648,11 +652,13 @@
                   "Name": "MiningPrompt",
                   "ClassName": "ProximityPrompt",
                   "Properties": {
-                    "ActionText": "Mine Copper",
+                    "ActionText": "Mine",
                     "ObjectText": "Copper Ore",
+                    "ClickablePrompt": true,
+                    "Exclusivity": "OneGlobally",
                     "HoldDuration": 0,
                     "MaxActivationDistance": 10,
-                    "RequiresLineOfSight": false
+                    "RequiresLineOfSight": true
                   }
                 }
               ]

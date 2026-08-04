@@ -1,6 +1,7 @@
 --!strict
 
 local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -23,7 +24,7 @@ local function isSnapshot(payload: any): boolean
 		and typeof(payload.outputQuantity) == "number"
 end
 
-local function getMiningPrompts(): { ProximityPrompt }
+local function getMiningPrompts(): (Instance, { ProximityPrompt })
 	local world = Workspace:WaitForChild("World")
 	local undergroundMine = world:WaitForChild("UndergroundMine")
 	local copperNodes = undergroundMine:WaitForChild("CopperNodes")
@@ -34,7 +35,7 @@ local function getMiningPrompts(): { ProximityPrompt }
 		table.insert(prompts, prompt)
 	end
 	assert(#prompts > 0, "No Mining prompts are available")
-	return prompts
+	return copperNodes, prompts
 end
 
 function MiningController.start()
@@ -49,7 +50,7 @@ function MiningController.start()
 	assert(snapshotRemote:IsA("RemoteEvent"), "Mining snapshot remote is unavailable")
 
 	local currentSnapshot: Snapshot? = nil
-	local prompts = getMiningPrompts()
+	local copperNodes, prompts = getMiningPrompts()
 	local hud = MiningHud.create(playerGui, function()
 		commandRemote:FireServer({
 			schemaVersion = MiningContracts.SCHEMA_VERSION,
@@ -57,43 +58,50 @@ function MiningController.start()
 		})
 	end)
 
-	local function setPromptAction(active: boolean)
+	local function setPromptsEnabled(enabled: boolean)
 		for _, prompt in prompts do
-			prompt.ActionText = if active then "Stop Mining" else "Mine Copper"
+			prompt.Enabled = enabled
 		end
 	end
 
-	for _, prompt in prompts do
-		prompt.Triggered:Connect(function(_playerWhoTriggered: Player)
-			local active = currentSnapshot ~= nil and currentSnapshot.active
-			if active then
-				commandRemote:FireServer({
-					schemaVersion = MiningContracts.SCHEMA_VERSION,
-					kind = "stop",
-				})
-			else
-				commandRemote:FireServer({
-					schemaVersion = MiningContracts.SCHEMA_VERSION,
-					kind = "start",
-					actionId = DEFAULT_ACTION_ID,
-				})
+	ProximityPromptService.PromptTriggered:Connect(
+		function(prompt: ProximityPrompt, triggeringPlayer: Player)
+			if
+				triggeringPlayer ~= player
+				or prompt.Name ~= "MiningPrompt"
+				or prompt.Parent == nil
+				or prompt.Parent.Parent ~= copperNodes
+				or (currentSnapshot ~= nil and currentSnapshot.active)
+			then
+				return
 			end
-		end)
-	end
+			commandRemote:FireServer({
+				schemaVersion = MiningContracts.SCHEMA_VERSION,
+				kind = "start",
+				actionId = DEFAULT_ACTION_ID,
+			})
+		end
+	)
 
 	local function renderSnapshot(snapshot: Snapshot)
 		currentSnapshot = snapshot
-		if snapshot.errorCode ~= nil then
-			local message = if snapshot.errorCode == "mining.not_near_ore_node"
-				then "Move near a Copper Ore node to mine"
-				else `Mining unavailable: {snapshot.errorCode}`
-			hud.setStatus(message)
+		if snapshot.errorCode == "mining.not_near_ore_node" then
+			hud.setTitle("Move closer to Copper Ore")
+			hud.setDetails("Use the prompt beside an ore node")
+		elseif snapshot.errorCode == "mining.left_ore_range" then
+			hud.setTitle("Mining stopped")
+			hud.setDetails("Return to a Copper Ore node to resume")
+		elseif snapshot.errorCode ~= nil then
+			hud.setTitle("Mining unavailable")
+			hud.setDetails(snapshot.errorCode)
 		else
-			hud.setStatus(
-				`Mining Copper · Level {snapshot.effectiveProfessionLevel} · {snapshot.totalProfessionXp} XP · {snapshot.outputQuantity} Copper`
+			hud.setTitle("Mining Copper")
+			hud.setDetails(
+				`Level {snapshot.effectiveProfessionLevel} · {snapshot.totalProfessionXp} XP · {snapshot.outputQuantity} Copper`
 			)
 		end
-		setPromptAction(snapshot.active)
+		setPromptsEnabled(not snapshot.active)
+		hud.setStopVisible(snapshot.active)
 		hud.setVisible(snapshot.active or snapshot.errorCode ~= nil)
 		if not snapshot.active then
 			hud.setProgress(0)

@@ -232,6 +232,7 @@ RunService.Heartbeat:Connect(function()
 			if not stopResult.ok then
 				warn(`Mining proximity stop failed for user {userId}: {stopResult.code}`)
 			elseif player ~= nil then
+				stopResult.value.errorCode = "mining.left_ore_range"
 				setPickaxeEquipped(player, false)
 				snapshotRemote:FireClient(player, stopResult.value)
 			end

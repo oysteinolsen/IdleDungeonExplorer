@@ -97,8 +97,12 @@ describe("P2.3 world model", function()
 				local prompt = node:FindFirstChildOfClass("ProximityPrompt")
 				expect(prompt == nil).toBe(false)
 				if prompt ~= nil then
-					expect(prompt.ActionText).toBe("Mine Copper")
+					expect(prompt.ActionText).toBe("Mine")
+					expect(prompt.ObjectText).toBe("Copper Ore")
+					expect(prompt.ClickablePrompt).toBe(true)
+					expect(prompt.Exclusivity).toBe(Enum.ProximityPromptExclusivity.OneGlobally)
 					expect(prompt.MaxActivationDistance).toBe(10)
+					expect(prompt.RequiresLineOfSight).toBe(true)
 				end
 			end
 		end

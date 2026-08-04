@@ -14,6 +14,12 @@ local function requireChild(parent: Instance, name: string): Instance
 	return child
 end
 
+local function requireBasePart(parent: Instance, name: string): BasePart
+	local child = requireChild(parent, name)
+	assert(child:IsA("BasePart"), `Expected {child:GetFullName()} to be a BasePart`)
+	return child
+end
+
 describe("P2.3 world model", function()
 	it("provides a playable village and distinct underground mine", function()
 		local world = requireChild(Workspace, "World")
@@ -30,8 +36,35 @@ describe("P2.3 world model", function()
 		expect(spawn:IsA("SpawnLocation")).toBe(true)
 		expect(requireChild(village, "Blacksmith"):IsA("Model")).toBe(true)
 		expect(requireChild(village, "SupplyShop"):IsA("Model")).toBe(true)
-		expect(requireChild(mineEntrance, "TunnelFloor"):IsA("BasePart")).toBe(true)
-		expect(requireChild(undergroundMine, "MiningArea"):IsA("BasePart")).toBe(true)
+		expect(requireBasePart(mineEntrance, "TunnelFloor"):IsA("BasePart")).toBe(true)
+		expect(requireBasePart(undergroundMine, "MiningArea"):IsA("BasePart")).toBe(true)
+	end)
+
+	it("keeps the village square walkable and seals the tunnel into the chamber", function()
+		local world = requireChild(Workspace, "World")
+		local village = requireChild(world, "Village")
+		local mineEntrance = requireChild(world, "MineEntrance")
+		local undergroundMine = requireChild(world, "UndergroundMine")
+
+		expect(requireBasePart(village, "SquareBrazier").CanCollide).toBe(false)
+		requireBasePart(undergroundMine, "FrontLeftWall")
+		requireBasePart(undergroundMine, "FrontRightWall")
+		requireBasePart(undergroundMine, "FrontTopWall")
+
+		local tunnelFloor = requireBasePart(mineEntrance, "TunnelFloor")
+		local mineFloor = requireBasePart(undergroundMine, "MineFloor")
+		local roomEnd =
+			tunnelFloor.CFrame:PointToWorldSpace(Vector3.new(0, 0, -tunnelFloor.Size.Z * 0.5))
+		local mineFloorFront = mineFloor.Position.Z + mineFloor.Size.Z * 0.5
+		local mineFloorTop = mineFloor.Position.Y + mineFloor.Size.Y * 0.5
+		expect(roomEnd.Z < mineFloorFront - 1).toBe(true)
+		expect(math.abs(roomEnd.Y - mineFloorTop) < 0.25).toBe(true)
+
+		local villageEnd =
+			tunnelFloor.CFrame:PointToWorldSpace(Vector3.new(0, 0, tunnelFloor.Size.Z * 0.5))
+		local threshold = requireBasePart(mineEntrance, "EntranceThreshold")
+		expect(math.abs(villageEnd.Y - threshold.Position.Y) < 0.75).toBe(true)
+		expect(math.abs(villageEnd.Z - threshold.Position.Z) < threshold.Size.Z).toBe(true)
 	end)
 
 	it("keeps all structural geometry anchored and asset-free", function()
@@ -47,7 +80,7 @@ describe("P2.3 world model", function()
 			expect(descendant:IsA("Decal")).toBe(false)
 			expect(descendant:IsA("Texture")).toBe(false)
 		end
-		expect(basePartCount >= 30).toBe(true)
+		expect(basePartCount >= 34).toBe(true)
 	end)
 
 	it("includes representative copper nodes in the mining chamber", function()
@@ -61,6 +94,12 @@ describe("P2.3 world model", function()
 			expect(node:IsA("BasePart")).toBe(true)
 			if node:IsA("BasePart") then
 				expect(node.Material).toBe(Enum.Material.Metal)
+				local prompt = node:FindFirstChildOfClass("ProximityPrompt")
+				expect(prompt == nil).toBe(false)
+				if prompt ~= nil then
+					expect(prompt.ActionText).toBe("Mine Copper")
+					expect(prompt.MaxActivationDistance).toBe(10)
+				end
 			end
 		end
 	end)

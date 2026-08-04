@@ -276,6 +276,7 @@
           "ClassName": "Part",
           "Properties": {
             "Anchored": true,
+            "CanCollide": false,
             "Material": "Slate",
             "Color": [0.18, 0.18, 0.19],
             "CFrame": [0, 1.5, 15, 1, 0, 0, 0, 1, 0, 0, 0, 1],
@@ -391,14 +392,25 @@
           ]
         },
         {
+          "Name": "EntranceThreshold",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Slate",
+            "Color": [0.23, 0.22, 0.2],
+            "CFrame": [0, -0.35, -51, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [14, 1, 8]
+          }
+        },
+        {
           "Name": "TunnelFloor",
           "ClassName": "Part",
           "Properties": {
             "Anchored": true,
             "Material": "Slate",
             "Color": [0.23, 0.22, 0.2],
-            "CFrame": [0, -6, -82, 1, 0, 0, 0, 0.973, 0.231, 0, -0.231, 0.973],
-            "Size": [14, 1, 52]
+            "CFrame": [0, -6, -81, 1, 0, 0, 0, 0.982, 0.19, 0, -0.19, 0.982],
+            "Size": [14, 1, 64]
           }
         },
         {
@@ -408,8 +420,8 @@
             "Anchored": true,
             "Material": "Rock",
             "Color": [0.24, 0.23, 0.22],
-            "CFrame": [-9, 1, -82, 1, 0, 0, 0, 0.973, 0.231, 0, -0.231, 0.973],
-            "Size": [4, 16, 52]
+            "CFrame": [-9, 1, -81, 1, 0, 0, 0, 0.982, 0.19, 0, -0.19, 0.982],
+            "Size": [4, 16, 64]
           }
         },
         {
@@ -419,8 +431,8 @@
             "Anchored": true,
             "Material": "Rock",
             "Color": [0.24, 0.23, 0.22],
-            "CFrame": [9, 1, -82, 1, 0, 0, 0, 0.973, 0.231, 0, -0.231, 0.973],
-            "Size": [4, 16, 52]
+            "CFrame": [9, 1, -81, 1, 0, 0, 0, 0.982, 0.19, 0, -0.19, 0.982],
+            "Size": [4, 16, 64]
           }
         },
         {
@@ -430,8 +442,8 @@
             "Anchored": true,
             "Material": "Rock",
             "Color": [0.2, 0.2, 0.19],
-            "CFrame": [0, 9, -82, 1, 0, 0, 0, 0.973, 0.231, 0, -0.231, 0.973],
-            "Size": [22, 2, 52]
+            "CFrame": [0, 9, -81, 1, 0, 0, 0, 0.982, 0.19, 0, -0.19, 0.982],
+            "Size": [22, 2, 64]
           }
         },
         {
@@ -499,6 +511,39 @@
           }
         },
         {
+          "Name": "FrontLeftWall",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.23, 0.22, 0.2],
+            "CFrame": [-23.25, -1, -109.5, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [25.5, 24, 4]
+          }
+        },
+        {
+          "Name": "FrontRightWall",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.23, 0.22, 0.2],
+            "CFrame": [23.25, -1, -109.5, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [25.5, 24, 4]
+          }
+        },
+        {
+          "Name": "FrontTopWall",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.19, 0.19, 0.18],
+            "CFrame": [0, 7, -109.5, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [22, 7, 4]
+          }
+        },
+        {
           "Name": "BackWall",
           "ClassName": "Part",
           "Properties": {
@@ -547,7 +592,20 @@
                 "CFrame": [-19, -8.5, -146, 1, 0, 0, 0, 1, 0, 0, 0, 1],
                 "Size": [6, 7, 5],
                 "Shape": "Ball"
-              }
+              },
+              "Children": [
+                {
+                  "Name": "MiningPrompt",
+                  "ClassName": "ProximityPrompt",
+                  "Properties": {
+                    "ActionText": "Mine Copper",
+                    "ObjectText": "Copper Ore",
+                    "HoldDuration": 0,
+                    "MaxActivationDistance": 10,
+                    "RequiresLineOfSight": false
+                  }
+                }
+              ]
             },
             {
               "Name": "CopperNode02",
@@ -559,7 +617,20 @@
                 "CFrame": [18, -9, -149, 1, 0, 0, 0, 1, 0, 0, 0, 1],
                 "Size": [7, 6, 6],
                 "Shape": "Ball"
-              }
+              },
+              "Children": [
+                {
+                  "Name": "MiningPrompt",
+                  "ClassName": "ProximityPrompt",
+                  "Properties": {
+                    "ActionText": "Mine Copper",
+                    "ObjectText": "Copper Ore",
+                    "HoldDuration": 0,
+                    "MaxActivationDistance": 10,
+                    "RequiresLineOfSight": false
+                  }
+                }
+              ]
             },
             {
               "Name": "CopperNode03",
@@ -571,7 +642,20 @@
                 "CFrame": [27, -9.5, -128, 1, 0, 0, 0, 1, 0, 0, 0, 1],
                 "Size": [5, 5, 5],
                 "Shape": "Ball"
-              }
+              },
+              "Children": [
+                {
+                  "Name": "MiningPrompt",
+                  "ClassName": "ProximityPrompt",
+                  "Properties": {
+                    "ActionText": "Mine Copper",
+                    "ObjectText": "Copper Ore",
+                    "HoldDuration": 0,
+                    "MaxActivationDistance": 10,
+                    "RequiresLineOfSight": false
+                  }
+                }
+              ]
             }
           ]
         },

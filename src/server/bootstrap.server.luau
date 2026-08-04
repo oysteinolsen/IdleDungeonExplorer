@@ -9,11 +9,18 @@ local MiningService = require(script.Parent.application.MiningService)
 local ProgressionBalance = require(script.Parent.content.ProgressionBalance)
 local InMemoryPlayerProfileRepository =
 	require(script.Parent.infrastructure.InMemoryPlayerProfileRepository)
+local MiningLocationService = require(script.Parent.services.MiningLocationService)
 local ContentRegistry = require(ReplicatedStorage.Shared.content.ContentRegistry)
 local MiningContracts = require(ReplicatedStorage.Shared.net.MiningContracts)
 local RepresentativeContent = require(ReplicatedStorage.Shared.content.RepresentativeContent)
 
 local DEFAULT_ACTION_ID = "action.mine_copper"
+local MAX_MINING_DISTANCE = 10
+
+local world = workspace:WaitForChild("World")
+local undergroundMine = world:WaitForChild("UndergroundMine")
+local copperNodes = undergroundMine:WaitForChild("CopperNodes")
+local miningLocationService = MiningLocationService.create(copperNodes, MAX_MINING_DISTANCE)
 
 local registryResult = ContentRegistry.create(RepresentativeContent.create())
 assert(registryResult.ok, "Representative content registry failed to initialize")
@@ -189,6 +196,10 @@ commandRemote.OnServerEvent:Connect(function(player: Player, payload: any)
 	local now = workspace:GetServerTimeNow()
 	local result
 	if commandResult.value.kind == "start" then
+		if not miningLocationService.isCharacterNearNode(player.Character) then
+			sendFailure(player, "mining.not_near_ore_node")
+			return
+		end
 		local actionId = commandResult.value.actionId
 		assert(actionId ~= nil, "Validated start command is missing actionId")
 		result = miningService.start(player.UserId, actionId, now)
@@ -207,14 +218,32 @@ end)
 RunService.Heartbeat:Connect(function()
 	local now = workspace:GetServerTimeNow()
 	for _, userId in repository.allUserIds() do
-		local advanceResult = miningService.advance(userId, now)
-		if advanceResult.ok and advanceResult.value.completedCycles > 0 then
-			local player = Players:GetPlayerByUserId(userId)
-			if player ~= nil then
-				snapshotRemote:FireClient(player, advanceResult.value.snapshot)
+		local player = Players:GetPlayerByUserId(userId)
+		local snapshotResult = miningService.getSnapshot(userId, now)
+		if not snapshotResult.ok then
+			warn(`Mining snapshot failed for user {userId}: {snapshotResult.code}`)
+		elseif
+			snapshotResult.value.active
+			and not miningLocationService.isCharacterNearNode(
+				if player == nil then nil else player.Character
+			)
+		then
+			local stopResult = miningService.stop(userId, now)
+			if not stopResult.ok then
+				warn(`Mining proximity stop failed for user {userId}: {stopResult.code}`)
+			elseif player ~= nil then
+				setPickaxeEquipped(player, false)
+				snapshotRemote:FireClient(player, stopResult.value)
 			end
-		elseif not advanceResult.ok and advanceResult.code ~= "mining.no_active_action" then
-			warn(`Mining advance failed for user {userId}: {advanceResult.code}`)
+		else
+			local advanceResult = miningService.advance(userId, now)
+			if advanceResult.ok and advanceResult.value.completedCycles > 0 then
+				if player ~= nil then
+					snapshotRemote:FireClient(player, advanceResult.value.snapshot)
+				end
+			elseif not advanceResult.ok and advanceResult.code ~= "mining.no_active_action" then
+				warn(`Mining advance failed for user {userId}: {advanceResult.code}`)
+			end
 		end
 	end
 end)

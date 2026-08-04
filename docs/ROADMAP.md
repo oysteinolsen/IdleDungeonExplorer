@@ -26,7 +26,7 @@ Status legend: **DONE**, **NEXT**, **PLANNED**, **DEFERRED**. Only one item may 
 
 - **DONE [P2.1](design/P2.1-mining.md):** Implemented server-authoritative continuous Mining with one level-1 ore, profession XP through `profession_curve.v1`, an owned visible starter-pickaxe fixture, progress feedback, explicit action requirements, tests, and a passing desktop/small-phone Studio playtest. The real Gold purchase flow remains P2.2.
 - **PLANNED [P2.2](design/P2.2-bank-and-economy.md):** Add the shared bank, full-bank overflow warning/telemetry, selling, Gold, and a level-gated pickaxe upgrade. Intentionally reordered after P2.3 for the current implementation sequence.
-- **NEXT [P2.3](design/P2.3-village-and-mine.md):** Build the minimal village and distinct underground mine entrance using audited free assets or primitives. The repository-owned primitive scene and automated checks are implemented; desktop and small-phone visual playtesting remains before completion.
+- **NEXT [P2.3](design/P2.3-village-and-mine.md):** Build the minimal village and distinct underground mine entrance using audited free assets or primitives. First-playtest collision, mine-seam, HUD-overlap, and spatial-Mining failures are fixed with automated coverage; desktop and small-phone re-testing remains before completion.
 
 ## M3 — Forging and equipment slice
 

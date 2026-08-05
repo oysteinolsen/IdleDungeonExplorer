@@ -6,12 +6,15 @@ local RunService = game:GetService("RunService")
 
 local MiningProfileFactory = require(script.Parent.application.MiningProfileFactory)
 local MiningService = require(script.Parent.application.MiningService)
+local EconomyService = require(script.Parent.application.EconomyService)
+local EconomyBalance = require(script.Parent.content.EconomyBalance)
 local ProgressionBalance = require(script.Parent.content.ProgressionBalance)
 local InMemoryPlayerProfileRepository =
 	require(script.Parent.infrastructure.InMemoryPlayerProfileRepository)
 local MiningLocationService = require(script.Parent.services.MiningLocationService)
 local ContentRegistry = require(ReplicatedStorage.Shared.content.ContentRegistry)
 local MiningContracts = require(ReplicatedStorage.Shared.net.MiningContracts)
+local EconomyContracts = require(ReplicatedStorage.Shared.net.EconomyContracts)
 local RepresentativeContent = require(ReplicatedStorage.Shared.content.RepresentativeContent)
 
 local DEFAULT_ACTION_ID = "action.mine_copper"
@@ -30,7 +33,7 @@ local repository = InMemoryPlayerProfileRepository.create()
 local recorder: MiningService.EventRecorder = {
 	record = function(event: MiningService.MiningEvent): MiningService.RecorderResult
 		print(
-			`[Mining] user={event.userId} cycles={event.completedCycles} ore={event.outputQuantity} xp={event.professionXp}`
+			`[Mining] user={event.userId} cycles={event.completedCycles} banked={event.bankedQuantity} overflow={event.overflowQuantity} xp={event.professionXp}`
 		)
 		return { ok = true, value = true }
 	end,
@@ -45,6 +48,14 @@ local serviceResult = MiningService.create({
 })
 assert(serviceResult.ok, "Mining service failed to initialize")
 local miningService = serviceResult.value
+
+local economyServiceResult = EconomyService.create({
+	registry = registry,
+	repository = repository,
+	balance = EconomyBalance.DEFAULT,
+})
+assert(economyServiceResult.ok, "Economy service failed to initialize")
+local economyService = economyServiceResult.value
 
 local remotesFolder = ReplicatedStorage:FindFirstChild("MiningRemotes")
 if remotesFolder == nil then
@@ -70,38 +81,106 @@ if snapshotRemote == nil then
 end
 assert(snapshotRemote:IsA("RemoteEvent"), "Mining snapshot remote must be a RemoteEvent")
 
-local function findStarterPickaxe(player: Player): Tool?
+local economyRemotesFolder = ReplicatedStorage:FindFirstChild("EconomyRemotes")
+if economyRemotesFolder == nil then
+	economyRemotesFolder = Instance.new("Folder")
+	economyRemotesFolder.Name = "EconomyRemotes"
+	economyRemotesFolder.Parent = ReplicatedStorage
+end
+assert(economyRemotesFolder:IsA("Folder"), "EconomyRemotes must be a Folder")
+
+local economyCommandRemote = economyRemotesFolder:FindFirstChild("Command")
+if economyCommandRemote == nil then
+	economyCommandRemote = Instance.new("RemoteEvent")
+	economyCommandRemote.Name = "Command"
+	economyCommandRemote.Parent = economyRemotesFolder
+end
+assert(economyCommandRemote:IsA("RemoteEvent"), "Economy command remote must be a RemoteEvent")
+
+local economySnapshotRemote = economyRemotesFolder:FindFirstChild("Snapshot")
+if economySnapshotRemote == nil then
+	economySnapshotRemote = Instance.new("RemoteEvent")
+	economySnapshotRemote.Name = "Snapshot"
+	economySnapshotRemote.Parent = economyRemotesFolder
+end
+assert(economySnapshotRemote:IsA("RemoteEvent"), "Economy snapshot remote must be a RemoteEvent")
+
+local economySnapshotRequestRemote = economyRemotesFolder:FindFirstChild("RequestSnapshot")
+if economySnapshotRequestRemote == nil then
+	economySnapshotRequestRemote = Instance.new("RemoteEvent")
+	economySnapshotRequestRemote.Name = "RequestSnapshot"
+	economySnapshotRequestRemote.Parent = economyRemotesFolder
+end
+assert(
+	economySnapshotRequestRemote:IsA("RemoteEvent"),
+	"Economy snapshot request remote must be a RemoteEvent"
+)
+
+local function findOwnedPickaxe(player: Player): Tool?
 	local character = player.Character
 	if character ~= nil then
-		local equipped = character:FindFirstChild("Starter Pickaxe")
-		if equipped ~= nil and equipped:IsA("Tool") then
-			return equipped
+		for _, child in character:GetChildren() do
+			if child:IsA("Tool") and child:GetAttribute("ProfessionToolId") ~= nil then
+				return child
+			end
 		end
 	end
 	local backpack = player:FindFirstChildOfClass("Backpack")
 	if backpack ~= nil then
-		local stored = backpack:FindFirstChild("Starter Pickaxe")
-		if stored ~= nil and stored:IsA("Tool") then
-			return stored
+		for _, child in backpack:GetChildren() do
+			if child:IsA("Tool") and child:GetAttribute("ProfessionToolId") ~= nil then
+				return child
+			end
 		end
 	end
 	return nil
 end
 
-local function createStarterPickaxe(player: Player)
-	if findStarterPickaxe(player) ~= nil then
+local function desiredPickaxeId(player: Player): string?
+	local envelope = repository.get(player.UserId)
+	if envelope == nil then
+		return nil
+	end
+	if envelope.data.activeAction ~= nil and envelope.data.activeAction.selectedToolId ~= nil then
+		return envelope.data.activeAction.selectedToolId
+	end
+	local selectedId: string? = nil
+	for _, tool in registry.getToolsForCategory("tool_category.pickaxe") do
+		if envelope.data.unlocksById[tool.id] == true then
+			selectedId = tool.id
+		end
+	end
+	return selectedId
+end
+
+local function syncOwnedPickaxe(player: Player)
+	local desiredToolId = desiredPickaxeId(player)
+	local existing = findOwnedPickaxe(player)
+	if existing ~= nil and existing:GetAttribute("ProfessionToolId") == desiredToolId then
+		return
+	end
+	if existing ~= nil then
+		existing:Destroy()
+	end
+	if desiredToolId == nil then
 		return
 	end
 	local backpack = player:FindFirstChildOfClass("Backpack") or player:WaitForChild("Backpack", 5)
 	if backpack == nil or not backpack:IsA("Backpack") then
-		warn(`Could not create starter pickaxe for user {player.UserId}: Backpack unavailable`)
+		warn(`Could not create pickaxe for user {player.UserId}: Backpack unavailable`)
+		return
+	end
+	local definition = registry.getTool(desiredToolId)
+	if definition == nil then
+		warn(`Could not create unknown pickaxe '{desiredToolId}' for user {player.UserId}`)
 		return
 	end
 
 	local tool = Instance.new("Tool")
-	tool.Name = "Starter Pickaxe"
+	tool.Name = definition.displayName
 	tool.CanBeDropped = false
 	tool.ToolTip = "Required for Mining"
+	tool:SetAttribute("ProfessionToolId", definition.id)
 
 	local handle = Instance.new("Part")
 	handle.Name = "Handle"
@@ -115,7 +194,9 @@ local function createStarterPickaxe(player: Player)
 	local head = Instance.new("Part")
 	head.Name = "PickaxeHead"
 	head.Size = Vector3.new(2.2, 0.35, 0.35)
-	head.Color = Color3.fromRGB(120, 126, 134)
+	head.Color = if definition.id == "tool.copper_pickaxe"
+		then Color3.fromRGB(184, 115, 51)
+		else Color3.fromRGB(120, 126, 134)
 	head.Material = Enum.Material.Metal
 	head.CanCollide = false
 	head.Massless = true
@@ -139,12 +220,13 @@ local function setPickaxeEquipped(player: Player, equipped: boolean)
 		return
 	end
 	if equipped then
-		local tool = findStarterPickaxe(player)
+		local tool = findOwnedPickaxe(player)
 		if tool ~= nil then
 			humanoid:EquipTool(tool)
 		end
 	else
 		humanoid:UnequipTools()
+		syncOwnedPickaxe(player)
 	end
 end
 
@@ -159,6 +241,17 @@ local function sendFailure(player: Player, code: string)
 	end
 end
 
+local function sendEconomyFailure(player: Player, code: string)
+	local snapshotResult = economyService.getSnapshot(player.UserId, workspace:GetServerTimeNow())
+	if snapshotResult.ok then
+		local snapshot = snapshotResult.value
+		snapshot.errorCode = code
+		economySnapshotRemote:FireClient(player, snapshot)
+	else
+		warn(`Economy command failed for user {player.UserId}: {code}`)
+	end
+end
+
 local function addPlayer(player: Player)
 	local now = workspace:GetServerTimeNow()
 	local profile = MiningProfileFactory.create(now, registry.contentVersion)
@@ -168,12 +261,16 @@ local function addPlayer(player: Player)
 		return
 	end
 	player.CharacterAdded:Connect(function(_character: Model)
-		task.defer(createStarterPickaxe, player)
+		task.defer(syncOwnedPickaxe, player)
 	end)
-	createStarterPickaxe(player)
+	syncOwnedPickaxe(player)
 	local snapshotResult = miningService.getSnapshot(player.UserId, now)
 	if snapshotResult.ok then
 		snapshotRemote:FireClient(player, snapshotResult.value)
+	end
+	local economySnapshotResult = economyService.getSnapshot(player.UserId, now)
+	if economySnapshotResult.ok then
+		economySnapshotRemote:FireClient(player, economySnapshotResult.value)
 	end
 end
 
@@ -184,6 +281,31 @@ end
 
 Players.PlayerRemoving:Connect(function(player: Player)
 	repository.remove(player.UserId)
+end)
+
+economyCommandRemote.OnServerEvent:Connect(function(player: Player, payload: any)
+	local commandResult = EconomyContracts.validateCommand(payload)
+	if not commandResult.ok then
+		sendEconomyFailure(player, commandResult.code)
+		return
+	end
+	local result =
+		economyService.execute(player.UserId, commandResult.value, workspace:GetServerTimeNow())
+	if not result.ok then
+		sendEconomyFailure(player, result.code)
+		return
+	end
+	syncOwnedPickaxe(player)
+	economySnapshotRemote:FireClient(player, result.value)
+end)
+
+economySnapshotRequestRemote.OnServerEvent:Connect(function(player: Player)
+	local snapshotResult = economyService.getSnapshot(player.UserId, workspace:GetServerTimeNow())
+	if snapshotResult.ok then
+		economySnapshotRemote:FireClient(player, snapshotResult.value)
+	else
+		warn(`Economy snapshot request failed for user {player.UserId}: {snapshotResult.code}`)
+	end
 end)
 
 commandRemote.OnServerEvent:Connect(function(player: Player, payload: any)
@@ -241,6 +363,10 @@ RunService.Heartbeat:Connect(function()
 			if advanceResult.ok and advanceResult.value.completedCycles > 0 then
 				if player ~= nil then
 					snapshotRemote:FireClient(player, advanceResult.value.snapshot)
+					local economySnapshotResult = economyService.getSnapshot(userId, now)
+					if economySnapshotResult.ok then
+						economySnapshotRemote:FireClient(player, economySnapshotResult.value)
+					end
 				end
 			elseif not advanceResult.ok and advanceResult.code ~= "mining.no_active_action" then
 				warn(`Mining advance failed for user {userId}: {advanceResult.code}`)

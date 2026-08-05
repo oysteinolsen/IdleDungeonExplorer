@@ -18,6 +18,7 @@ export type ItemDefinition = {
 	displayOrder: number,
 	tags: { string },
 	stackable: boolean,
+	sellPriceGold: number,
 	equipmentSlotId: string?,
 }
 
@@ -51,6 +52,9 @@ export type ToolDefinition = {
 	professionId: string,
 	categoryId: string,
 	requiredProfessionLevel: number,
+	qualityRank: number,
+	purchasePriceGold: number,
+	prerequisiteToolId: string?,
 	modifierIds: { string },
 }
 
@@ -63,7 +67,7 @@ export type ActionDefinition = {
 	baseDurationSeconds: number,
 	professionId: string,
 	requiredProfessionLevel: number,
-	requiredToolId: string,
+	requiredToolCategoryId: string,
 	professionXp: number,
 	xpMultiplier: number,
 	outputItemId: string,

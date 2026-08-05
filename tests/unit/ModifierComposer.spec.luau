@@ -59,7 +59,8 @@ describe("ModifierComposer", function()
 		end
 		local action = registryResult.value.getAction("action.mine_copper")
 		assert(action ~= nil, "Representative action is missing")
-		local modifiers = registryResult.value.getToolModifiers(action.requiredToolId)
+		local tools = registryResult.value.getToolsForCategory(action.requiredToolCategoryId)
+		local modifiers = registryResult.value.getToolModifiers(tools[1].id)
 		assert(modifiers ~= nil, "Representative tool modifiers are missing")
 
 		local result =

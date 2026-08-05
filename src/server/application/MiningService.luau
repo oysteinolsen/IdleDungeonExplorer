@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ContentRegistry = require(ReplicatedStorage.Shared.content.ContentRegistry)
 local ContentTypes = require(ReplicatedStorage.Shared.content.ContentTypes)
+local BankTransactions = require(ReplicatedStorage.Shared.domain.BankTransactions)
 local MiningActionSimulator = require(ReplicatedStorage.Shared.domain.MiningActionSimulator)
 local ModifierComposer = require(ReplicatedStorage.Shared.domain.ModifierComposer)
 local ProfessionCurve = require(ReplicatedStorage.Shared.domain.ProfessionCurve)
@@ -38,6 +39,8 @@ export type MiningEvent = {
 	completedCycles: number,
 	outputItemId: string,
 	outputQuantity: number,
+	bankedQuantity: number,
+	overflowQuantity: number,
 	professionXp: number,
 }
 
@@ -152,24 +155,11 @@ local function findItemQuantity(data: PlayerData, itemId: string): number
 	return 0
 end
 
-local function addStackedItem(data: PlayerData, itemId: string, quantity: number)
-	for _, entry in data.bank.entries do
-		if entry.itemId == itemId and entry.instanceId == nil then
-			entry.quantity += quantity
-			return
-		end
-	end
-	table.insert(data.bank.entries, {
-		itemId = itemId,
-		quantity = quantity,
-		instanceId = nil,
-	})
-end
-
 local function resolveContext(
 	registry: ContentRegistry.Registry,
 	balance: ProgressionBalance.Config,
-	actionId: string
+	actionId: string,
+	toolId: string
 ): ContextResult
 	local action = registry.getAction(actionId)
 	if action == nil then
@@ -185,9 +175,15 @@ local function resolveContext(
 			`Profession '{profession.id}' uses unsupported curve '{profession.curveId}'`
 		)
 	end
-	local tool = registry.getTool(action.requiredToolId)
+	local tool = registry.getTool(toolId)
 	if tool == nil then
-		return fail("mining.invalid_content", `Tool '{action.requiredToolId}' is unavailable`)
+		return fail("mining.invalid_content", `Tool '{toolId}' is unavailable`)
+	end
+	if
+		tool.categoryId ~= action.requiredToolCategoryId
+		or tool.professionId ~= action.professionId
+	then
+		return fail("mining.ineligible_tool", `Tool '{toolId}' cannot perform '{actionId}'`)
 	end
 
 	local actionModifiers = registry.getActionModifiers(action.id)
@@ -254,7 +250,9 @@ local function snapshotFor(
 	envelope: SaveEnvelope,
 	context: ActionContext,
 	now: number,
-	errorCode: string?
+	errorCode: string?,
+	lastBankedQuantity: number?,
+	lastOverflowQuantity: number?
 ): Snapshot
 	local progress = envelope.data.professionProgressById[context.profession.id]
 	local activeAction = envelope.data.activeAction
@@ -263,12 +261,19 @@ local function snapshotFor(
 		serverTime = now,
 		active = activeAction ~= nil,
 		actionId = if activeAction == nil then nil else activeAction.actionId,
+		toolId = if activeAction == nil then nil else activeAction.selectedToolId,
 		actionDurationSeconds = if activeAction == nil then nil else context.actionDurationSeconds,
 		lastSimulatedAt = if activeAction == nil then nil else activeAction.lastSimulatedAt,
 		totalProfessionXp = if progress == nil then 0 else progress.experience,
 		effectiveProfessionLevel = if progress == nil then 1 else progress.level,
 		outputItemId = context.action.outputItemId,
 		outputQuantity = findItemQuantity(envelope.data, context.action.outputItemId),
+		bankCapacity = envelope.data.bank.capacity,
+		bankUsedSlots = #envelope.data.bank.entries,
+		lastBankedQuantity = lastBankedQuantity or 0,
+		lastOverflowQuantity = lastOverflowQuantity or 0,
+		totalOverflowQuantity = envelope.data.statisticCountersById["statistic.mining_overflow_items"]
+			or 0,
 		errorCode = errorCode,
 	}
 end
@@ -280,8 +285,21 @@ function MiningService.create(dependencies: Dependencies): CreateResult
 	if not isPositiveMultiplier(dependencies.balance.testProfessionXpMultiplier) then
 		return fail("mining.invalid_test_xp_multiplier", "Test XP multiplier is invalid")
 	end
-	local defaultContextResult =
-		resolveContext(dependencies.registry, dependencies.balance, dependencies.defaultActionId)
+	local defaultAction = dependencies.registry.getAction(dependencies.defaultActionId)
+	if defaultAction == nil then
+		return fail("mining.unknown_action", "Default Mining action does not exist")
+	end
+	local defaultTools =
+		dependencies.registry.getToolsForCategory(defaultAction.requiredToolCategoryId)
+	if #defaultTools == 0 then
+		return fail("mining.invalid_content", "Default Mining tool category is empty")
+	end
+	local defaultContextResult = resolveContext(
+		dependencies.registry,
+		dependencies.balance,
+		dependencies.defaultActionId,
+		defaultTools[1].id
+	)
 	if not defaultContextResult.ok then
 		return defaultContextResult
 	end
@@ -315,13 +333,15 @@ function MiningService.create(dependencies: Dependencies): CreateResult
 				return fail("mining.action_already_active", "Another action is already active")
 			end
 
-			local contextResult =
-				resolveContext(dependencies.registry, dependencies.balance, actionId)
-			if not contextResult.ok then
-				return contextResult
+			local action = dependencies.registry.getAction(actionId)
+			if action == nil then
+				return fail("mining.unknown_action", `Mining action '{actionId}' does not exist`)
 			end
-			local context = contextResult.value
-			local progress = envelope.data.professionProgressById[context.profession.id]
+			local profession = dependencies.registry.getProfession(action.professionId)
+			if profession == nil then
+				return fail("mining.invalid_content", "Mining profession is unavailable")
+			end
+			local progress = envelope.data.professionProgressById[profession.id]
 			if progress == nil then
 				return fail(
 					"mining.profession_progress_missing",
@@ -329,26 +349,42 @@ function MiningService.create(dependencies: Dependencies): CreateResult
 				)
 			end
 			local levelsResult =
-				ProfessionCurve.getLevels(progress.experience, context.profession.contentLevelCap)
+				ProfessionCurve.getLevels(progress.experience, profession.contentLevelCap)
 			if not levelsResult.ok then
 				return levelsResult
 			end
-			local requiredLevel = math.max(
-				context.action.requiredProfessionLevel,
-				context.tool.requiredProfessionLevel
-			)
-			if levelsResult.value.effectiveLevel < requiredLevel then
+			if levelsResult.value.effectiveLevel < action.requiredProfessionLevel then
 				return fail(
 					"mining.level_requirement_not_met",
-					`Mining requires level {requiredLevel}`
+					`Mining requires level {action.requiredProfessionLevel}`
 				)
 			end
-			if envelope.data.unlocksById[context.tool.id] ~= true then
+			local selectedTool: ToolDefinition? = nil
+			for _, tool in dependencies.registry.getToolsForCategory(action.requiredToolCategoryId) do
+				if
+					tool.professionId == action.professionId
+					and tool.requiredProfessionLevel <= levelsResult.value.effectiveLevel
+					and envelope.data.unlocksById[tool.id] == true
+				then
+					selectedTool = tool
+				end
+			end
+			if selectedTool == nil then
 				return fail(
 					"mining.required_tool_not_owned",
-					`Tool '{context.tool.id}' is not owned`
+					`An owned '{action.requiredToolCategoryId}' tool is required`
 				)
 			end
+			local contextResult = resolveContext(
+				dependencies.registry,
+				dependencies.balance,
+				actionId,
+				selectedTool.id
+			)
+			if not contextResult.ok then
+				return contextResult
+			end
+			local context = contextResult.value
 
 			progress.level = levelsResult.value.effectiveLevel
 			envelope.data.activeAction = {
@@ -360,6 +396,7 @@ function MiningService.create(dependencies: Dependencies): CreateResult
 				repeatUntilStopped = true,
 				reservedIngredients = {},
 				randomState = 0,
+				selectedToolId = selectedTool.id,
 			}
 			envelope.revision += 1
 			envelope.updatedAt = now
@@ -367,7 +404,7 @@ function MiningService.create(dependencies: Dependencies): CreateResult
 			if not replaceResult.ok then
 				return replaceResult
 			end
-			return { ok = true, value = snapshotFor(envelope, context, now, nil) }
+			return { ok = true, value = snapshotFor(envelope, context, now, nil, nil, nil) }
 		end,
 		stop = function(userId: number, now: number): SnapshotResult
 			if not isFinite(now) or now < 0 then
@@ -390,7 +427,7 @@ function MiningService.create(dependencies: Dependencies): CreateResult
 			end
 			return {
 				ok = true,
-				value = snapshotFor(envelope, defaultContextResult.value, now, nil),
+				value = snapshotFor(envelope, defaultContextResult.value, now, nil, nil, nil),
 			}
 		end,
 		advance = function(userId: number, now: number): AdvanceResult
@@ -413,8 +450,19 @@ function MiningService.create(dependencies: Dependencies): CreateResult
 				)
 			end
 
-			local contextResult =
-				resolveContext(dependencies.registry, dependencies.balance, activeAction.actionId)
+			local selectedToolId = activeAction.selectedToolId
+			if selectedToolId == nil then
+				return fail(
+					"mining.active_tool_missing",
+					"Active Mining action has no selected tool"
+				)
+			end
+			local contextResult = resolveContext(
+				dependencies.registry,
+				dependencies.balance,
+				activeAction.actionId,
+				selectedToolId
+			)
 			if not contextResult.ok then
 				return contextResult
 			end
@@ -434,7 +482,7 @@ function MiningService.create(dependencies: Dependencies): CreateResult
 				return {
 					ok = true,
 					value = {
-						snapshot = snapshotFor(envelope, context, now, nil),
+						snapshot = snapshotFor(envelope, context, now, nil, nil, nil),
 						completedCycles = 0,
 						eventRecordFailureCode = nil,
 					},
@@ -448,7 +496,19 @@ function MiningService.create(dependencies: Dependencies): CreateResult
 					"Mining progress is not initialized"
 				)
 			end
-			addStackedItem(envelope.data, context.action.outputItemId, proposal.outputQuantity)
+			local bankResult = BankTransactions.addStackedItem(
+				envelope.data.bank,
+				context.action.outputItemId,
+				proposal.outputQuantity
+			)
+			if not bankResult.ok then
+				return bankResult
+			end
+			if bankResult.value.overflowQuantity > 0 then
+				envelope.data.statisticCountersById["statistic.mining_overflow_items"] = (
+					envelope.data.statisticCountersById["statistic.mining_overflow_items"] or 0
+				) + bankResult.value.overflowQuantity
+			end
 			progress.experience += proposal.professionXp
 			local levelsResult =
 				ProfessionCurve.getLevels(progress.experience, context.profession.contentLevelCap)
@@ -477,12 +537,23 @@ function MiningService.create(dependencies: Dependencies): CreateResult
 				completedCycles = proposal.completedCycles,
 				outputItemId = context.action.outputItemId,
 				outputQuantity = proposal.outputQuantity,
+				bankedQuantity = bankResult.value.bankedQuantity,
+				overflowQuantity = bankResult.value.overflowQuantity,
 				professionXp = proposal.professionXp,
 			})
 			return {
 				ok = true,
 				value = {
-					snapshot = snapshotFor(envelope, context, now, nil),
+					snapshot = snapshotFor(
+						envelope,
+						context,
+						now,
+						if bankResult.value.overflowQuantity > 0
+							then "mining.bank_full_overflow"
+							else nil,
+						bankResult.value.bankedQuantity,
+						bankResult.value.overflowQuantity
+					),
 					completedCycles = proposal.completedCycles,
 					eventRecordFailureCode = if recorderResult.ok then nil else recorderResult.code,
 				},
@@ -497,15 +568,28 @@ function MiningService.create(dependencies: Dependencies): CreateResult
 				return profileResult
 			end
 			local envelope = profileResult.value
-			local actionId = if envelope.data.activeAction == nil
+			local activeAction = envelope.data.activeAction
+			local actionId = if activeAction == nil
 				then dependencies.defaultActionId
-				else envelope.data.activeAction.actionId
+				else activeAction.actionId
+			local toolId = if activeAction == nil
+				then defaultContextResult.value.tool.id
+				else activeAction.selectedToolId
+			if toolId == nil then
+				return fail(
+					"mining.active_tool_missing",
+					"Active Mining action has no selected tool"
+				)
+			end
 			local contextResult =
-				resolveContext(dependencies.registry, dependencies.balance, actionId)
+				resolveContext(dependencies.registry, dependencies.balance, actionId, toolId)
 			if not contextResult.ok then
 				return contextResult
 			end
-			return { ok = true, value = snapshotFor(envelope, contextResult.value, now, nil) }
+			return {
+				ok = true,
+				value = snapshotFor(envelope, contextResult.value, now, nil, nil, nil),
+			}
 		end,
 	})
 

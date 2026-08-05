@@ -44,6 +44,7 @@ local function createHarness(options: HarnessOptions?)
 
 	local repository = InMemoryPlayerProfileRepository.create()
 	local profile = MiningProfileFactory.create(100, registryResult.value.contentVersion)
+	profile.data.unlocksById["tool.starter_pickaxe"] = true
 	if actualOptions.profileMutation ~= nil then
 		actualOptions.profileMutation(profile)
 	end
@@ -104,6 +105,8 @@ describe("MiningService", function()
 		expect(#events).toBe(1)
 		expect(events[1].eventName).toBe("profession_action_completed")
 		expect(events[1].toolId).toBe("tool.starter_pickaxe")
+		expect(events[1].bankedQuantity).toBe(1)
+		expect(events[1].overflowQuantity).toBe(0)
 	end)
 
 	it("keeps partial progress without committing rewards or events", function()
@@ -172,5 +175,45 @@ describe("MiningService", function()
 		assert(stored ~= nil, "Stored profile is missing")
 		expect(stored.data.activeAction).toBeNil()
 		expect(#stored.data.bank.entries).toBe(0)
+	end)
+
+	it("discards only full-bank rewards while XP and overflow telemetry continue", function()
+		local service, repository, events = createHarness({
+			profileMutation = function(profile: any)
+				profile.data.bank.capacity = 1
+				table.insert(profile.data.bank.entries, {
+					itemId = "item.other_material",
+					quantity = 1,
+					instanceId = nil,
+				})
+			end,
+		})
+		assert(service.start(123, "action.mine_copper", 100).ok, "Expected Mining to start")
+		local advanceResult = service.advance(123, 102.7)
+		assert(advanceResult.ok, "Expected full-bank Mining to advance")
+		expect(advanceResult.value.snapshot.outputQuantity).toBe(0)
+		expect(advanceResult.value.snapshot.totalProfessionXp).toBe(7)
+		expect(advanceResult.value.snapshot.lastOverflowQuantity).toBe(1)
+		expect(advanceResult.value.snapshot.errorCode).toBe("mining.bank_full_overflow")
+
+		local stored = repository.get(123)
+		assert(stored ~= nil, "Stored profile is missing")
+		expect(#stored.data.bank.entries).toBe(1)
+		expect(stored.data.statisticCountersById["statistic.mining_overflow_items"]).toBe(1)
+		expect(events[1].bankedQuantity).toBe(0)
+		expect(events[1].overflowQuantity).toBe(1)
+	end)
+
+	it("selects the highest owned level-eligible tool quality", function()
+		local service = createHarness({
+			profileMutation = function(profile: any)
+				profile.data.unlocksById["tool.copper_pickaxe"] = true
+				profile.data.professionProgressById["profession.mining"].experience = 1317
+			end,
+		})
+		local startResult = service.start(123, "action.mine_copper", 100)
+		assert(startResult.ok, "Expected upgraded Mining to start")
+		expect(startResult.value.toolId).toBe("tool.copper_pickaxe")
+		expect(math.abs((startResult.value.actionDurationSeconds or 0) - 2.25) < 1e-8).toBe(true)
 	end)
 end)

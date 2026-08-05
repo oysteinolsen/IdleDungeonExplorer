@@ -4,6 +4,7 @@ export type ItemStack = {
 	itemId: string,
 	quantity: number,
 	instanceId: string?,
+	favorite: boolean?,
 }
 
 export type Bank = {
@@ -31,6 +32,7 @@ export type ActiveActionSnapshot = {
 	repeatUntilStopped: boolean,
 	reservedIngredients: { ItemStack },
 	randomState: number,
+	selectedToolId: string?,
 }
 
 export type PlayerSettings = {
@@ -49,6 +51,8 @@ export type PlayerData = {
 	discoveredItemsById: { [string]: boolean },
 	discoveredPetsById: { [string]: boolean },
 	statisticCountersById: { [string]: number },
+	processedEconomyTransactionsById: { [string]: string },
+	processedEconomyTransactionOrder: { string },
 }
 
 export type SessionLease = {

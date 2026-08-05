@@ -16,12 +16,18 @@ export type Snapshot = {
 	serverTime: number,
 	active: boolean,
 	actionId: string?,
+	toolId: string?,
 	actionDurationSeconds: number?,
 	lastSimulatedAt: number?,
 	totalProfessionXp: number,
 	effectiveProfessionLevel: number,
 	outputItemId: string?,
 	outputQuantity: number,
+	bankCapacity: number,
+	bankUsedSlots: number,
+	lastBankedQuantity: number,
+	lastOverflowQuantity: number,
+	totalOverflowQuantity: number,
 	errorCode: string?,
 }
 

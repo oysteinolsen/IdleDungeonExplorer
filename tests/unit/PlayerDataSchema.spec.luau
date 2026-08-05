@@ -46,11 +46,12 @@ describe("PlayerDataSchema", function()
 		expect(envelope.updatedAt).toBe(123456)
 		expect(envelope.contentVersion).toBe(RepresentativeContent.CONTENT_VERSION)
 		expect(envelope.sessionLease).toBeNil()
-		expect(envelope.data.currencies["currency.gold"]).toBe(0)
+		expect(envelope.data.currencies["currency.gold"]).toBe(100)
 		expect(envelope.data.bank.capacity).toBe(40)
 		expect(envelope.data.unsecuredDungeonLoot.capacity).toBe(16)
 		expect(envelope.data.settings.offlineEfficiency).toBe(0.5)
 		expect(envelope.data.activeAction).toBeNil()
+		expect(#envelope.data.processedEconomyTransactionOrder).toBe(0)
 		expect(isRobloxSerializable(envelope, {})).toBe(true)
 	end)
 
@@ -65,24 +66,25 @@ describe("PlayerDataSchema", function()
 			instanceId = nil,
 		})
 
-		expect(second.data.currencies["currency.gold"]).toBe(0)
+		expect(second.data.currencies["currency.gold"]).toBe(100)
 		expect(#second.data.bank.entries).toBe(0)
 	end)
 
 	it("reports supported, migratable, future, and invalid schema versions", function()
-		local supported = PlayerDataSchema.checkCompatibility(1)
+		local supported =
+			PlayerDataSchema.checkCompatibility(PlayerDataSchema.CURRENT_SCHEMA_VERSION)
 		expect(supported.ok).toBe(true)
 		if supported.ok then
 			expect(supported.value).toBe("supported")
 		end
 
-		local legacy = PlayerDataSchema.checkCompatibility(0)
+		local legacy = PlayerDataSchema.checkCompatibility(1)
 		expect(legacy.ok).toBe(true)
 		if legacy.ok then
 			expect(legacy.value).toBe("migration_required")
 		end
 
-		local future = PlayerDataSchema.checkCompatibility(2)
+		local future = PlayerDataSchema.checkCompatibility(3)
 		expect(future.ok).toBe(false)
 		if not future.ok then
 			expect(future.code).toBe("save.future_schema_version")

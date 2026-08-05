@@ -33,10 +33,20 @@ Last updated: 2026-08-05
 - Refined Mining UI under accepted decision D-018 and current Roblox guidance: default single-visible proximity prompts provide platform input hints; the core-UI-safe responsive HUD separates activity from stats, hides while idle, uses a selectable 48-pixel Stop target, and reports out-of-range stopping without showing an invalid action.
 - Added deterministic Mining-location and adaptive-HUD coverage. Full validation passes formatting, lint, strict analysis, both Rojo builds, and 12 Studio/Jest suites with 39 tests.
 - Completed **P2.3** after the developer smoke-tested the corrected build successfully. The primitive village/mine, route collision, sealed shaft/chamber geometry, ore proximity interaction, automatic out-of-range stopping, and compact adaptive HUD are accepted for the prototype.
+- Implemented the P2.2 bank/economy path on `codex/p2.2-bank-economy`: a reusable 40-slot stack bank with safe overflow, five category views, favorites, Copper selling, 100 starting Gold, permanent tool purchases, increasing bank-slot purchases, and strict server-authoritative economy commands.
+- Replaced the P2.1 owned-tool fixture with the real 50-Gold Starter Pickaxe purchase. Added the level-10 250-Gold Copper Pickaxe, category-based Mining tool selection, and the upgraded 2.25-second Copper action interval.
+- Added bounded persisted idempotency receipts for successful economy transactions. Exact recent retries do not double-apply, transaction-ID conflicts fail explicitly, and failed preconditions leave the profile unchanged.
+- Mining now commits rewards through the shared bank boundary. When a new stack cannot fit, only ore is discarded; profession XP, timing, revision, overflow statistics, client warning, and banked/overflow event fields continue correctly.
+- Added a core-UI-safe responsive Bank & Economy panel with touch/gamepad-selectable actions. Full validation passes formatting, lint, strict analysis, both Rojo builds, and 16 Studio/Jest suites with 52 tests.
+- Addressed the first P2.2 mobile playtest failure: the fixed top offset and 300-pixel minimum height could push half the bank window below a short landscape viewport. The bank is now a safe-area-centered modal with responsive margins, no overflowing minimum, a desktop maximum, a blocking/dismissible scrim, scaled button text, and vertically scrolling content; automated layout regression coverage passes.
+- Addressed the follow-up empty-bank-modal report by replacing implicit sibling rendering with an explicit global Z-order: backdrop, panel, static controls/content, dynamic rows, and labels/buttons each occupy a guaranteed higher layer. Regression coverage now asserts that categories and inventory rows render above the panel background.
+- Added a repository-owned, vibrant 512-pixel transparent icon set for Copper Ore, the Starter Pickaxe, and the Copper Pickaxe. The art is Roblox-ready, but an authorized Studio/Creator Dashboard import is still required to obtain runtime `rbxassetid://` values.
 
 ## Unfinished
 
-- **P2.2** is next: bank capacity/overflow, selling, Gold balances, and the real tool purchase/upgrade transaction. P2.1 temporarily stacks committed ore without enforcing capacity.
+- **P2.2** implementation and automated coverage are complete. A desktop and small-phone Studio smoke test is still required before changing its roadmap status to DONE.
+- P2.2 presentation still needs the three generated item/tool icons imported to Roblox and their moderated asset IDs wired into icon-led bank and tool rows; essential text must remain beside the icons for accessibility.
+- Queue a focused P2.3 environment-art expansion immediately after P2.2 is accepted: replace the box-room mine with an irregular rock silhouette; add substantial timber portal, wall, and roof supports; run rails down the shaft; place a detailed mine cart and dressing outside; embed one distinct ore node per available ore type partially into rock walls; and apply a vibrant layered-material/lighting pass rather than final-facing primitive placeholders. Keep this separate from the active bank milestone.
 - Durable persistence, migrations, and offline simulation remain later roadmap work; P2.1 state intentionally lasts only for the current server session.
 - The final public name and detailed prototype balance remain deferred.
 
@@ -61,6 +71,10 @@ Last updated: 2026-08-05
 - `tests/integration/WorldModel.spec.luau` — Studio checks for required world structure, anchoring, asset-free construction, and copper fixtures.
 - `src/server/services/MiningLocationService.luau` — server-side distance-from-ore enforcement used for start validation and automatic stop-on-leave behavior.
 - `tests/unit/MiningLocationService.spec.luau` — surface-distance and missing-character coverage for spatial Mining authority.
+- `src/shared/domain/BankTransactions.luau` — reusable stacked-bank add/remove/favorite transactions and safe overflow outcomes.
+- `src/server/application/EconomyService.luau` and `src/shared/net/EconomyContracts.luau` — atomic idempotent selling, tool and slot purchases, snapshots, and strict client intent validation.
+- `src/client/controllers/EconomyController.luau` and `src/client/ui/EconomyHud.luau` — responsive bank/category, selling, favorite, Gold, and upgrade presentation.
+- `tests/integration/EconomyService.spec.luau`, `tests/unit/BankTransactions.spec.luau`, and `tests/unit/EconomyContracts.spec.luau` — bank safety, prerequisite, atomicity, conflict, and idempotency coverage.
 - `scripts/run-tests.luau` and `scripts/validate.ps1` — hardened Studio test entry point and complete validator.
 - `.github/workflows/ci.yml` — read-only hosted validation with pinned checkout and checksum-verified Rokit bootstrap.
 - `.gitattributes` — checkout-stable LF rules for validated/hash-protected files.
@@ -89,15 +103,17 @@ Last updated: 2026-08-05
 - P2.3 was explicitly moved ahead of P2.2 at the developer's request. It remains isolated to world construction; accepted bank, Gold, selling, and tool-purchase behavior remains unchanged and belongs to P2.2.
 - The P2.3 prototype environment uses only repository-declared Roblox primitive parts, built-in materials, and lights. This satisfies the accepted free-asset constraint while keeping later art replacement straightforward.
 - D-018 establishes an adaptive Roblox-native interface baseline: use familiar cross-platform affordances, core/device safe areas, responsive constraints, clear hierarchy and contrast, contextual visibility, selectable controls, and mobile-first targets while retaining the game's fantasy tone.
+- P2.2 uses `prototype.v3` and player-data schema v2. Copper Ore sells for 2 Gold; the Starter and Copper Pickaxes cost 50 and 250 Gold; bank-slot costs begin at 200 Gold and rise by 50 per slot under `economy_balance.v1`. These prototype tuning details are recorded in the active P2.2 brief rather than as cross-cutting accepted decisions.
+- Recent successful economy transaction receipts are retained in player data with a 128-entry bound. This covers normal network retries without allowing save data to grow indefinitely; durable persistence and migration handling remain P5.1.
 
 ## Known issues
 
 - Jest Roblox 3.10 is still the Wally-backed development dependency until Roblox's 3.20 packages are published. Its aggregate `success` field is not trusted; zero failed-suite and failed-test counters plus the runtime-only sentinel define success.
 - The current content schema supports the profession/tool/action fields and three modifier targets needed by P2.1. Later roadmap items must extend it deliberately with matching validation and tests.
-- The P2.1 bank write intentionally has no capacity/overflow behavior. Do not treat it as the reusable bank transaction; P2.2 owns that implementation and its idempotency/failure tests.
+- The representative prototype currently has only one bankable item, so full-bank overflow is covered deterministically in service tests but cannot yet be reached through ordinary solo play. Later content will exercise it naturally.
 - `roblox/jest@3.20.0` and `roblox/jest-globals@3.20.0` are not yet available through the live Wally index.
 - GitHub-hosted runners do not include Roblox Studio, so they cannot execute the Jest Roblox runtime suite. The hosted check covers deterministic static/build stages, while the default local validator covers those stages plus Studio/Jest.
 
 ## Exact recommended next task
 
-Start **P2.2 — Bank and economy path** on a new branch. Read its focused brief and dependencies, then implement the shared bank capacity/overflow path before selling, Gold balances, and the real level-gated pickaxe purchase/upgrade transaction.
+Import the three PNGs under `assets/icons/`, wire their moderated Roblox image asset IDs into icon-led bank/tool rows, and re-test **P2.2 — Bank and economy path** in Roblox Studio on desktop and a small-phone emulator. Verify that the complete modal, Close button, tabs, icons, and scrollable rows stay inside the safe viewport, then exercise the full purchase/mining/selling/favorite flow. After P2.2 is accepted, select the queued P2.3 environment-art expansion before advancing to P3.1.

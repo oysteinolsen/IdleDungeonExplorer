@@ -1,6 +1,6 @@
 # Current State
 
-Last updated: 2026-08-04
+Last updated: 2026-08-05
 
 ## Completed
 
@@ -32,11 +32,11 @@ Last updated: 2026-08-04
 - Replaced the always-visible bottom Mining controls with per-node Roblox proximity prompts and a compact top HUD shown only while active or reporting an error. The server independently enforces a 10-stud distance from the ore surface and automatically stops Mining when the avatar walks away.
 - Refined Mining UI under accepted decision D-018 and current Roblox guidance: default single-visible proximity prompts provide platform input hints; the core-UI-safe responsive HUD separates activity from stats, hides while idle, uses a selectable 48-pixel Stop target, and reports out-of-range stopping without showing an invalid action.
 - Added deterministic Mining-location and adaptive-HUD coverage. Full validation passes formatting, lint, strict analysis, both Rojo builds, and 12 Studio/Jest suites with 39 tests.
+- Completed **P2.3** after the developer smoke-tested the corrected build successfully. The primitive village/mine, route collision, sealed shaft/chamber geometry, ore proximity interaction, automatic out-of-range stopping, and compact adaptive HUD are accepted for the prototype.
 
 ## Unfinished
 
-- **P2.3** remains the only in-progress item until the corrected build passes desktop and small-phone visual re-testing. The first visual playtest failed on village collision, mine gaps, HUD overlap, and missing spatial Mining enforcement; fixes and automated Studio checks now pass.
-- **P2.2** intentionally follows P2.3: bank capacity/overflow, selling, Gold balances, and the real tool purchase/upgrade transaction. P2.1 temporarily stacks committed ore without enforcing capacity.
+- **P2.2** is next: bank capacity/overflow, selling, Gold balances, and the real tool purchase/upgrade transaction. P2.1 temporarily stacks committed ore without enforcing capacity.
 - Durable persistence, migrations, and offline simulation remain later roadmap work; P2.1 state intentionally lasts only for the current server session.
 - The final public name and detailed prototype balance remain deferred.
 
@@ -65,8 +65,8 @@ Last updated: 2026-08-04
 - `.github/workflows/ci.yml` — read-only hosted validation with pinned checkout and checksum-verified Rokit bootstrap.
 - `.gitattributes` — checkout-stable LF rules for validated/hash-protected files.
 - `docs/GAME_DESIGN.md` and `docs/design/README.md` — small session entry point and roadmap-to-brief map.
-- `docs/design/P2.3-village-and-mine.md` — focused design and remaining visual-playtest checklist for the active item.
-- `docs/ROADMAP.md` — P2.3 remains the only selected next item; P2.2 follows it.
+- `docs/design/P2.3-village-and-mine.md` — completed world-slice design and playtest record.
+- `docs/ROADMAP.md` — P2.3 is complete and P2.2 is the selected next item.
 
 ## Decisions made
 
@@ -95,11 +95,9 @@ Last updated: 2026-08-04
 - Jest Roblox 3.10 is still the Wally-backed development dependency until Roblox's 3.20 packages are published. Its aggregate `success` field is not trusted; zero failed-suite and failed-test counters plus the runtime-only sentinel define success.
 - The current content schema supports the profession/tool/action fields and three modifier targets needed by P2.1. Later roadmap items must extend it deliberately with matching validation and tests.
 - The P2.1 bank write intentionally has no capacity/overflow behavior. Do not treat it as the reusable bank transaction; P2.2 owns that implementation and its idempotency/failure tests.
-- The first P2.3 visual playtest did not report its exact device/viewport, so the required desktop and small-phone evidence is still incomplete.
-- The corrected P2.3 build still requires visual confirmation that every mine seam is closed, prompts are convenient, out-of-range stopping behaves naturally, and the compact HUD no longer conflicts with the Roblox tool hotbar.
 - `roblox/jest@3.20.0` and `roblox/jest-globals@3.20.0` are not yet available through the live Wally index.
 - GitHub-hosted runners do not include Roblox Studio, so they cannot execute the Jest Roblox runtime suite. The hosted check covers deterministic static/build stages, while the default local validator covers those stages plus Studio/Jest.
 
 ## Exact recommended next task
 
-Open the corrected P2.3 production build in Roblox Studio on desktop and a named small-phone preset. Re-test the central square, every mine seam, shaft/chamber connection, ore proximity prompt, rejection outside the mine, automatic stop after walking away, compact HUD, and pickaxe hotbar. Record the exact viewport/build/result; if all pass, mark P2.3 DONE and proceed to **P2.2 — Bank and economy path**.
+Start **P2.2 — Bank and economy path** on a new branch. Read its focused brief and dependencies, then implement the shared bank capacity/overflow path before selling, Gold balances, and the real level-gated pickaxe purchase/upgrade transaction.

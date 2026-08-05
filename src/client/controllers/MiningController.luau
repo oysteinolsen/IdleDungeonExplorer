@@ -22,6 +22,11 @@ local function isSnapshot(payload: any): boolean
 		and typeof(payload.totalProfessionXp) == "number"
 		and typeof(payload.effectiveProfessionLevel) == "number"
 		and typeof(payload.outputQuantity) == "number"
+		and typeof(payload.bankCapacity) == "number"
+		and typeof(payload.bankUsedSlots) == "number"
+		and typeof(payload.lastBankedQuantity) == "number"
+		and typeof(payload.lastOverflowQuantity) == "number"
+		and typeof(payload.totalOverflowQuantity) == "number"
 end
 
 local function getMiningPrompts(): (Instance, { ProximityPrompt })
@@ -91,13 +96,18 @@ function MiningController.start()
 		elseif snapshot.errorCode == "mining.left_ore_range" then
 			hud.setTitle("Mining stopped")
 			hud.setDetails("Return to a Copper Ore node to resume")
+		elseif snapshot.errorCode == "mining.bank_full_overflow" then
+			hud.setTitle("Bank full — Copper discarded")
+			hud.setDetails(
+				`Mining XP continues · {snapshot.totalOverflowQuantity} Copper lost this session`
+			)
 		elseif snapshot.errorCode ~= nil then
 			hud.setTitle("Mining unavailable")
 			hud.setDetails(snapshot.errorCode)
 		else
 			hud.setTitle("Mining Copper")
 			hud.setDetails(
-				`Level {snapshot.effectiveProfessionLevel} · {snapshot.totalProfessionXp} XP · {snapshot.outputQuantity} Copper`
+				`Level {snapshot.effectiveProfessionLevel} · {snapshot.totalProfessionXp} XP · {snapshot.outputQuantity} Copper · Bank {snapshot.bankUsedSlots}/{snapshot.bankCapacity}`
 			)
 		end
 		setPromptsEnabled(not snapshot.active)

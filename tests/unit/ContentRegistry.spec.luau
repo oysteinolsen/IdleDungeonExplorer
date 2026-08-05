@@ -33,12 +33,14 @@ describe("ContentRegistry", function()
 		local slot = registry.getEquipmentSlot("equipment_slot.weapon")
 		local profession = registry.getProfession("profession.mining")
 		local tool = registry.getTool("tool.starter_pickaxe")
+		local copperTool = registry.getTool("tool.copper_pickaxe")
 		local action = registry.getAction("action.mine_copper")
 		local modifier = registry.getModifier("modifier.mining_speed")
 		assert(item ~= nil, "Representative item is missing")
 		assert(slot ~= nil, "Representative equipment slot is missing")
 		assert(profession ~= nil, "Representative profession is missing")
 		assert(tool ~= nil, "Representative tool is missing")
+		assert(copperTool ~= nil, "Copper tool upgrade is missing")
 		assert(action ~= nil, "Representative action is missing")
 		assert(modifier ~= nil, "Representative modifier is missing")
 		expect(registry.contentVersion).toBe(RepresentativeContent.CONTENT_VERSION)
@@ -47,18 +49,24 @@ describe("ContentRegistry", function()
 		expect(profession.curveId).toBe("profession_curve.v1")
 		expect(profession.contentLevelCap).toBe(30)
 		expect(tool.professionId).toBe("profession.mining")
+		expect(tool.purchasePriceGold).toBe(50)
+		expect(copperTool.requiredProfessionLevel).toBe(10)
+		expect(copperTool.prerequisiteToolId).toBe("tool.starter_pickaxe")
+		expect(item.sellPriceGold).toBe(2)
 		expect(action.outputItemId).toBe("item.copper_ore")
-		expect(action.requiredToolId).toBe("tool.starter_pickaxe")
+		expect(action.requiredToolCategoryId).toBe("tool_category.pickaxe")
 		expect(action.professionXp).toBe(7)
 		expect(modifier.value).toBe(0.9)
 
 		local ordered = registry.all()
 		expect(ordered[1].id).toBe("profession.mining")
 		expect(ordered[2].id).toBe("tool.starter_pickaxe")
-		expect(ordered[3].id).toBe("action.mine_copper")
-		expect(ordered[4].id).toBe("equipment_slot.weapon")
-		expect(ordered[5].id).toBe("item.copper_ore")
-		expect(ordered[6].id).toBe("modifier.mining_speed")
+		expect(ordered[3].id).toBe("tool.copper_pickaxe")
+		expect(ordered[4].id).toBe("action.mine_copper")
+		expect(ordered[5].id).toBe("equipment_slot.weapon")
+		expect(ordered[6].id).toBe("item.copper_ore")
+		expect(ordered[7].id).toBe("modifier.mining_speed")
+		expect(ordered[8].id).toBe("modifier.copper_pickaxe_speed")
 		expect(table.isfrozen(ordered)).toBe(true)
 		expect(table.isfrozen(item)).toBe(true)
 		expect(table.isfrozen(item.tags)).toBe(true)
@@ -134,8 +142,14 @@ describe("ContentRegistry", function()
 		expectFailure(ContentRegistry.create(missingModifier), "content.missing_reference")
 
 		local missingProfession = RepresentativeContent.create()
-		missingProfession.tools[1].professionId = "profession.missing"
+		for _, toolDefinition in missingProfession.tools do
+			toolDefinition.professionId = "profession.missing"
+		end
 		expectFailure(ContentRegistry.create(missingProfession), "content.missing_reference")
+
+		local missingToolCategory = RepresentativeContent.create()
+		missingToolCategory.actions[1].requiredToolCategoryId = "tool_category.missing"
+		expectFailure(ContentRegistry.create(missingToolCategory), "content.missing_reference")
 
 		local mismatchedTool = RepresentativeContent.create()
 		table.insert(mismatchedTool.professions, {
@@ -148,7 +162,9 @@ describe("ContentRegistry", function()
 			contentLevelCap = 30,
 			xpMultiplier = 1,
 		})
-		mismatchedTool.tools[1].professionId = "profession.woodcutting"
+		for _, toolDefinition in mismatchedTool.tools do
+			toolDefinition.professionId = "profession.woodcutting"
+		end
 		expectFailure(
 			ContentRegistry.create(mismatchedTool),
 			"content.incompatible_tool_profession"

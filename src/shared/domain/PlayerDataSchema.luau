@@ -15,10 +15,11 @@ export type CompatibilityResult = {
 
 local PlayerDataSchema = {}
 
-PlayerDataSchema.CURRENT_SCHEMA_VERSION = 1
+PlayerDataSchema.CURRENT_SCHEMA_VERSION = 2
 PlayerDataSchema.STARTING_BANK_CAPACITY = 40
 PlayerDataSchema.UNSECURED_LOOT_CAPACITY = 16
 PlayerDataSchema.STARTING_OFFLINE_EFFICIENCY = 0.5
+PlayerDataSchema.STARTING_GOLD = 100
 
 local function fail(code: string, detail: string): Failure
 	return {
@@ -80,7 +81,7 @@ function PlayerDataSchema.createDefault(updatedAt: number, contentVersion: strin
 		sessionLease = nil,
 		data = {
 			currencies = {
-				["currency.gold"] = 0,
+				["currency.gold"] = PlayerDataSchema.STARTING_GOLD,
 			},
 			bank = {
 				capacity = PlayerDataSchema.STARTING_BANK_CAPACITY,
@@ -100,6 +101,8 @@ function PlayerDataSchema.createDefault(updatedAt: number, contentVersion: strin
 			discoveredItemsById = {},
 			discoveredPetsById = {},
 			statisticCountersById = {},
+			processedEconomyTransactionsById = {},
+			processedEconomyTransactionOrder = {},
 		},
 	}
 end

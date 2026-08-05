@@ -6,7 +6,7 @@ type ContentSet = ContentTypes.ContentSet
 
 local RepresentativeContent = {}
 
-RepresentativeContent.CONTENT_VERSION = "prototype.v2"
+RepresentativeContent.CONTENT_VERSION = "prototype.v3"
 
 function RepresentativeContent.create(): ContentSet
 	return {
@@ -20,6 +20,7 @@ function RepresentativeContent.create(): ContentSet
 				displayOrder = 100,
 				tags = { "item_tag.material", "item_tag.ore" },
 				stackable = true,
+				sellPriceGold = 2,
 				equipmentSlotId = nil,
 			},
 		},
@@ -56,7 +57,24 @@ function RepresentativeContent.create(): ContentSet
 				professionId = "profession.mining",
 				categoryId = "tool_category.pickaxe",
 				requiredProfessionLevel = 1,
+				qualityRank = 1,
+				purchasePriceGold = 50,
+				prerequisiteToolId = nil,
 				modifierIds = { "modifier.mining_speed" },
+			},
+			{
+				kind = "tool",
+				id = "tool.copper_pickaxe",
+				schemaVersion = 1,
+				displayName = "Copper Pickaxe",
+				displayOrder = 91,
+				professionId = "profession.mining",
+				categoryId = "tool_category.pickaxe",
+				requiredProfessionLevel = 10,
+				qualityRank = 2,
+				purchasePriceGold = 250,
+				prerequisiteToolId = "tool.starter_pickaxe",
+				modifierIds = { "modifier.copper_pickaxe_speed" },
 			},
 		},
 		actions = {
@@ -69,7 +87,7 @@ function RepresentativeContent.create(): ContentSet
 				baseDurationSeconds = 3,
 				professionId = "profession.mining",
 				requiredProfessionLevel = 1,
-				requiredToolId = "tool.starter_pickaxe",
+				requiredToolCategoryId = "tool_category.pickaxe",
 				professionXp = 7,
 				xpMultiplier = 1,
 				outputItemId = "item.copper_ore",
@@ -87,6 +105,18 @@ function RepresentativeContent.create(): ContentSet
 				target = "action_duration",
 				operation = "multiply",
 				value = 0.9,
+				priority = 100,
+				dependencies = {},
+			},
+			{
+				kind = "modifier",
+				id = "modifier.copper_pickaxe_speed",
+				schemaVersion = 1,
+				displayName = "Copper Pickaxe Speed",
+				displayOrder = 101,
+				target = "action_duration",
+				operation = "multiply",
+				value = 0.75,
 				priority = 100,
 				dependencies = {},
 			},

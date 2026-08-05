@@ -21,6 +21,7 @@ export type Registry = {
 	getEquipmentSlot: (id: string) -> EquipmentSlotDefinition?,
 	getProfession: (id: string) -> ProfessionDefinition?,
 	getTool: (id: string) -> ToolDefinition?,
+	getToolsForCategory: (categoryId: string) -> { ToolDefinition },
 	getAction: (id: string) -> ActionDefinition?,
 	getModifier: (id: string) -> ModifierDefinition?,
 	getActionModifiers: (actionId: string) -> { ModifierDefinition }?,
@@ -142,6 +143,7 @@ local function copyDefinition(definition: Definition): Definition
 			displayOrder = definition.displayOrder,
 			tags = copyStringList(definition.tags),
 			stackable = definition.stackable,
+			sellPriceGold = definition.sellPriceGold,
 			equipmentSlotId = definition.equipmentSlotId,
 		}
 		return table.freeze(copy)
@@ -178,6 +180,9 @@ local function copyDefinition(definition: Definition): Definition
 			professionId = definition.professionId,
 			categoryId = definition.categoryId,
 			requiredProfessionLevel = definition.requiredProfessionLevel,
+			qualityRank = definition.qualityRank,
+			purchasePriceGold = definition.purchasePriceGold,
+			prerequisiteToolId = definition.prerequisiteToolId,
 			modifierIds = copyStringList(definition.modifierIds),
 		}
 		return table.freeze(copy)
@@ -191,7 +196,7 @@ local function copyDefinition(definition: Definition): Definition
 			baseDurationSeconds = definition.baseDurationSeconds,
 			professionId = definition.professionId,
 			requiredProfessionLevel = definition.requiredProfessionLevel,
-			requiredToolId = definition.requiredToolId,
+			requiredToolCategoryId = definition.requiredToolCategoryId,
 			professionXp = definition.professionXp,
 			xpMultiplier = definition.xpMultiplier,
 			outputItemId = definition.outputItemId,
@@ -243,6 +248,7 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 	local slotsById: { [string]: EquipmentSlotDefinition } = {}
 	local professionsById: { [string]: ProfessionDefinition } = {}
 	local toolsById: { [string]: ToolDefinition } = {}
+	local toolsByCategoryId: { [string]: { ToolDefinition } } = {}
 	local actionsById: { [string]: ActionDefinition } = {}
 	local modifiersById: { [string]: ModifierDefinition } = {}
 	local orderedDefinitions: { Definition } = {}
@@ -275,6 +281,17 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 		local tagsFailure = validateStableIdList(item.id, item.tags, "item_tag", "tag", true)
 		if tagsFailure ~= nil then
 			return tagsFailure
+		end
+
+		if
+			not isFinite(item.sellPriceGold)
+			or item.sellPriceGold < 0
+			or item.sellPriceGold ~= math.floor(item.sellPriceGold)
+		then
+			return fail(
+				"content.invalid_sell_price",
+				`Item '{item.id}' must have a non-negative integer Gold sell price`
+			)
 		end
 
 		if
@@ -374,6 +391,31 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 				`Tool '{tool.id}' must have a positive integer profession level requirement`
 			)
 		end
+		if not isPositiveInteger(tool.qualityRank) then
+			return fail(
+				"content.invalid_tool_quality",
+				`Tool '{tool.id}' must have a positive integer quality rank`
+			)
+		end
+		if
+			not isFinite(tool.purchasePriceGold)
+			or tool.purchasePriceGold < 0
+			or tool.purchasePriceGold ~= math.floor(tool.purchasePriceGold)
+		then
+			return fail(
+				"content.invalid_purchase_price",
+				`Tool '{tool.id}' must have a non-negative integer Gold purchase price`
+			)
+		end
+		if
+			tool.prerequisiteToolId ~= nil
+			and not StableId.hasNamespace(tool.prerequisiteToolId, "tool")
+		then
+			return fail(
+				"content.invalid_reference_id",
+				`Tool '{tool.id}' has invalid prerequisite tool ID '{tool.prerequisiteToolId}'`
+			)
+		end
 		local modifiersFailure =
 			validateStableIdList(tool.id, tool.modifierIds, "modifier", "modifier ID", false)
 		if modifiersFailure ~= nil then
@@ -415,10 +457,10 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 				`Action '{action.id}' must have a positive integer profession level requirement`
 			)
 		end
-		if not StableId.hasNamespace(action.requiredToolId, "tool") then
+		if not StableId.hasNamespace(action.requiredToolCategoryId, "tool_category") then
 			return fail(
 				"content.invalid_reference_id",
-				`Action '{action.id}' has invalid tool ID '{action.requiredToolId}'`
+				`Action '{action.id}' has invalid tool category ID '{action.requiredToolCategoryId}'`
 			)
 		end
 		if not isPositiveInteger(action.professionXp) then
@@ -559,6 +601,39 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 				)
 			end
 		end
+		if tool.prerequisiteToolId ~= nil then
+			local prerequisite = toolsById[tool.prerequisiteToolId]
+			if prerequisite == nil then
+				return fail(
+					"content.missing_reference",
+					`Tool '{tool.id}' references missing prerequisite '{tool.prerequisiteToolId}'`
+				)
+			end
+			if
+				prerequisite.professionId ~= tool.professionId
+				or prerequisite.categoryId ~= tool.categoryId
+				or prerequisite.qualityRank >= tool.qualityRank
+			then
+				return fail(
+					"content.invalid_tool_prerequisite",
+					`Tool '{tool.id}' prerequisite must be a lower quality in the same category`
+				)
+			end
+		end
+		local categoryTools = toolsByCategoryId[tool.categoryId]
+		if categoryTools == nil then
+			categoryTools = {}
+			toolsByCategoryId[tool.categoryId] = categoryTools
+		end
+		table.insert(categoryTools, tool)
+	end
+	for _, categoryTools in toolsByCategoryId do
+		table.sort(categoryTools, function(left: ToolDefinition, right: ToolDefinition): boolean
+			if left.qualityRank == right.qualityRank then
+				return left.id < right.id
+			end
+			return left.qualityRank < right.qualityRank
+		end)
 	end
 
 	for _, action in actionsById do
@@ -581,18 +656,20 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 				`Action '{action.id}' requires level {action.requiredProfessionLevel} above profession cap {profession.contentLevelCap}`
 			)
 		end
-		local tool = toolsById[action.requiredToolId]
-		if tool == nil then
+		local categoryTools = toolsByCategoryId[action.requiredToolCategoryId]
+		if categoryTools == nil or #categoryTools == 0 then
 			return fail(
 				"content.missing_reference",
-				`Action '{action.id}' references missing tool '{action.requiredToolId}'`
+				`Action '{action.id}' references empty tool category '{action.requiredToolCategoryId}'`
 			)
 		end
-		if tool.professionId ~= action.professionId then
-			return fail(
-				"content.incompatible_tool_profession",
-				`Action '{action.id}' and tool '{tool.id}' belong to different professions`
-			)
+		for _, tool in categoryTools do
+			if tool.professionId ~= action.professionId then
+				return fail(
+					"content.incompatible_tool_profession",
+					`Action '{action.id}' and tool '{tool.id}' belong to different professions`
+				)
+			end
 		end
 		for _, modifierId in action.modifierIds do
 			if modifiersById[modifierId] == nil then
@@ -686,6 +763,13 @@ function ContentRegistry.create(content: ContentSet): CreateResult
 		end,
 		getTool = function(id: string): ToolDefinition?
 			return toolsById[id]
+		end,
+		getToolsForCategory = function(categoryId: string): { ToolDefinition }
+			local tools = toolsByCategoryId[categoryId]
+			if tools == nil then
+				return table.freeze({})
+			end
+			return table.freeze(table.clone(tools))
 		end,
 		getAction = function(id: string): ActionDefinition?
 			return actionsById[id]

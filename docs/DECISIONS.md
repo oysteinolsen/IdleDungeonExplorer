@@ -1,6 +1,6 @@
 # Accepted Decisions
 
-This file is the concise index of significant accepted decisions and their reasoning. `docs/GAME_DESIGN.md` remains authoritative for complete rules, research, and deferred details.
+This file is the concise index of significant accepted decisions and their reasoning. [`docs/design/README.md`](design/README.md) maps roadmap items to the authoritative detailed briefs. The original discovery record is archived for provenance and is not a required session read.
 
 ## D-001 — Product and prototype scope
 
@@ -113,3 +113,9 @@ This file is the concise index of significant accepted decisions and their reaso
 **P1.4 curve/save amendment (2026-08-02):** Use the versioned, explicit `profession_curve.v1` threshold table from level 1 to 99, reaching 15,000,000 cumulative XP. Its original exponential calibration places level 30 at about 0.1% and level 92 near halfway. Persist cumulative XP as authority and derive effective level through the saved curve version plus the current content cap. Freeze published curves; any later replacement uses an explicit migration preserving level and fractional progress.
 
 **P1.4 unlock-ladder amendment (2026-08-02):** The representative level-30 spine unlocks Copper/Tin and Bronze Bars at level 1; Bronze weapon and armour representatives at levels 5 and 8; pickaxe upgrades at levels 10 and 20; Iron Ore/Bars at level 15; Coal and representative Iron equipment at level 20; and Steel Bars/equipment at levels 25 and 30. New accounts start with 100 Gold and buy the 50-Gold starter pickaxe. Profession tools are permanent account unlocks that cannot be sold, consumed, or lost on dungeon death.
+
+## D-018 — Adaptive Roblox-native interface
+
+**Decision:** Prefer Roblox-native interaction components and input-neutral events when they fit the game, including proximity prompts for nearby world actions and `GuiButton.Activated` for on-screen actions. Important UI uses core-UI/device safe insets, responsive scale plus bounded constraints, readable contrast and hierarchy, selectable controls, contextual visibility, and mobile-first touch sizing. The visual treatment should suit the game's approachable heroic-fantasy identity without replacing familiar platform affordances merely for decoration.
+
+**Reasoning:** The target audience spans young and experienced Roblox players on touch, keyboard/mouse, and gamepad. Familiar input hints reduce teaching, while safe responsive layouts and contextual controls preserve world visibility and avoid device-specific overlap.

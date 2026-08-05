@@ -3,6 +3,18 @@
   "servePort": 34872,
   "tree": {
     "$className": "DataModel",
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "Ambient": [0.18, 0.18, 0.22],
+        "Brightness": 2,
+        "ClockTime": 16.5,
+        "EnvironmentDiffuseScale": 0.35,
+        "EnvironmentSpecularScale": 0.25,
+        "GlobalShadows": true,
+        "OutdoorAmbient": [0.42, 0.42, 0.46]
+      }
+    },
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
       "Shared": {
@@ -27,7 +39,7 @@
     "Workspace": {
       "$className": "Workspace",
       "World": {
-        "$path": "place/world.rbxm"
+        "$path": "place/world.model.json"
       }
     }
   }

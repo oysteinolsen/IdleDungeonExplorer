@@ -2,7 +2,7 @@
 
 > Audience: a Windows developer who is new to Roblox Studio, Rojo, Rokit, Wally, Luau tooling, and this repository.
 >
-> Last verified: 2026-08-02. The project architecture and pinned versions are defined in [`TECHNICAL_DESIGN.md`](TECHNICAL_DESIGN.md).
+> Last verified: 2026-08-02. The project architecture and pinned versions are defined in [`design/P1.1-technical-foundation.md`](design/P1.1-technical-foundation.md).
 
 ## What you are setting up
 
@@ -218,7 +218,7 @@ After either method:
 rokit --version
 ```
 
-The machine-level Rokit version selected for this project is documented in [`TECHNICAL_DESIGN.md`](TECHNICAL_DESIGN.md). Project tool versions are separately pinned in `rokit.toml` once P1.2 adds it.
+The machine-level Rokit version selected for this project is documented in [`design/P1.1-technical-foundation.md`](design/P1.1-technical-foundation.md). Project tool versions are separately pinned in `rokit.toml` once P1.2 adds it.
 
 ## Step 7 — Get the repository
 

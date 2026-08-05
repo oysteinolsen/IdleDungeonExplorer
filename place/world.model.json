@@ -1,0 +1,721 @@
+{
+  "ClassName": "Model",
+  "Children": [
+    {
+      "Name": "Village",
+      "ClassName": "Model",
+      "Children": [
+        {
+          "Name": "VillageGround",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Material": "Grass",
+            "Color": [0.25, 0.45, 0.2],
+            "CFrame": [0, -0.5, 15, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [160, 1, 140],
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "Name": "VillageSquare",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Material": "Cobblestone",
+            "Color": [0.43, 0.43, 0.39],
+            "CFrame": [0, 0.1, 18, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [48, 0.2, 48],
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "Name": "MineRoad",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Material": "Cobblestone",
+            "Color": [0.4, 0.39, 0.35],
+            "CFrame": [0, 0.12, -28, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [12, 0.24, 44],
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "Name": "VillageSpawn",
+          "ClassName": "SpawnLocation",
+          "Properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Neutral": true,
+            "Duration": 0,
+            "Material": "Slate",
+            "Color": [0.25, 0.35, 0.28],
+            "Transparency": 0.35,
+            "CFrame": [0, 0.6, 31, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [8, 1, 8],
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "Name": "Blacksmith",
+          "ClassName": "Model",
+          "Children": [
+            {
+              "Name": "Foundation",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "Cobblestone",
+                "Color": [0.31, 0.3, 0.28],
+                "CFrame": [-35, 0.5, 10, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [24, 1, 22]
+              }
+            },
+            {
+              "Name": "BackWall",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "WoodPlanks",
+                "Color": [0.38, 0.24, 0.13],
+                "CFrame": [-35, 6, 20.5, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [24, 11, 1]
+              }
+            },
+            {
+              "Name": "LeftWall",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "WoodPlanks",
+                "Color": [0.38, 0.24, 0.13],
+                "CFrame": [-46.5, 6, 10, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [1, 11, 22]
+              }
+            },
+            {
+              "Name": "RightWall",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "WoodPlanks",
+                "Color": [0.38, 0.24, 0.13],
+                "CFrame": [-23.5, 6, 10, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [1, 11, 22]
+              }
+            },
+            {
+              "Name": "Roof",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "WoodPlanks",
+                "Color": [0.22, 0.12, 0.08],
+                "CFrame": [-35, 12, 10, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [27, 2, 25]
+              }
+            },
+            {
+              "Name": "Forge",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "Slate",
+                "Color": [0.16, 0.16, 0.17],
+                "CFrame": [-40, 2, 14, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [7, 3, 6]
+              }
+            },
+            {
+              "Name": "ForgeGlow",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "CanCollide": false,
+                "Material": "Neon",
+                "Color": [1, 0.31, 0.05],
+                "CFrame": [-40, 3.3, 12.2, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [5, 0.4, 2]
+              },
+              "Children": [
+                {
+                  "Name": "ForgeLight",
+                  "ClassName": "PointLight",
+                  "Properties": {
+                    "Brightness": 2,
+                    "Color": [1, 0.35, 0.1],
+                    "Range": 16,
+                    "Shadows": true
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Name": "SupplyShop",
+          "ClassName": "Model",
+          "Children": [
+            {
+              "Name": "Foundation",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "Cobblestone",
+                "Color": [0.34, 0.33, 0.29],
+                "CFrame": [35, 0.5, 10, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [24, 1, 22]
+              }
+            },
+            {
+              "Name": "BackWall",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "WoodPlanks",
+                "Color": [0.55, 0.38, 0.2],
+                "CFrame": [35, 6, 20.5, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [24, 11, 1]
+              }
+            },
+            {
+              "Name": "LeftWall",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "WoodPlanks",
+                "Color": [0.55, 0.38, 0.2],
+                "CFrame": [23.5, 6, 10, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [1, 11, 22]
+              }
+            },
+            {
+              "Name": "RightWall",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "WoodPlanks",
+                "Color": [0.55, 0.38, 0.2],
+                "CFrame": [46.5, 6, 10, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [1, 11, 22]
+              }
+            },
+            {
+              "Name": "Roof",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "WoodPlanks",
+                "Color": [0.16, 0.24, 0.17],
+                "CFrame": [35, 12, 10, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [27, 2, 25]
+              }
+            },
+            {
+              "Name": "Counter",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "Wood",
+                "Color": [0.28, 0.17, 0.09],
+                "CFrame": [35, 2.5, 0.5, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [16, 4, 2]
+              }
+            }
+          ]
+        },
+        {
+          "Name": "TownHall",
+          "ClassName": "Model",
+          "Children": [
+            {
+              "Name": "Hall",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "Brick",
+                "Color": [0.48, 0.39, 0.29],
+                "CFrame": [0, 6, 58, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [34, 12, 20]
+              }
+            },
+            {
+              "Name": "Roof",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "WoodPlanks",
+                "Color": [0.29, 0.1, 0.07],
+                "CFrame": [0, 13, 58, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [38, 2, 24]
+              }
+            },
+            {
+              "Name": "Door",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "Wood",
+                "Color": [0.18, 0.09, 0.04],
+                "CFrame": [0, 4, 47.8, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [6, 8, 0.5]
+              }
+            }
+          ]
+        },
+        {
+          "Name": "SquareBrazier",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "CanCollide": false,
+            "Material": "Slate",
+            "Color": [0.18, 0.18, 0.19],
+            "CFrame": [0, 1.5, 15, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [4, 3, 4]
+          },
+          "Children": [
+            {
+              "Name": "Flame",
+              "ClassName": "PointLight",
+              "Properties": {
+                "Brightness": 1.5,
+                "Color": [1, 0.52, 0.2],
+                "Range": 18,
+                "Shadows": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "MineEntrance",
+      "ClassName": "Model",
+      "Children": [
+        {
+          "Name": "LeftCliff",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.29, 0.29, 0.27],
+            "CFrame": [-34, 13, -62, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [48, 27, 22]
+          }
+        },
+        {
+          "Name": "RightCliff",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.29, 0.29, 0.27],
+            "CFrame": [34, 13, -62, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [48, 27, 22]
+          }
+        },
+        {
+          "Name": "CliffCrown",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.25, 0.25, 0.23],
+            "CFrame": [0, 24, -62, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [22, 8, 22]
+          }
+        },
+        {
+          "Name": "LeftArch",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Slate",
+            "Color": [0.2, 0.2, 0.19],
+            "CFrame": [-9.5, 7, -50, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [5, 14, 5]
+          }
+        },
+        {
+          "Name": "RightArch",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Slate",
+            "Color": [0.2, 0.2, 0.19],
+            "CFrame": [9.5, 7, -50, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [5, 14, 5]
+          }
+        },
+        {
+          "Name": "ArchTop",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Slate",
+            "Color": [0.2, 0.2, 0.19],
+            "CFrame": [0, 15.5, -50, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [24, 5, 5]
+          }
+        },
+        {
+          "Name": "MineMarker",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "CanCollide": false,
+            "Material": "Neon",
+            "Color": [1, 0.58, 0.14],
+            "CFrame": [0, 15.5, -47.4, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [10, 1, 0.3]
+          },
+          "Children": [
+            {
+              "Name": "EntranceLight",
+              "ClassName": "PointLight",
+              "Properties": {
+                "Brightness": 2,
+                "Color": [1, 0.56, 0.2],
+                "Range": 22,
+                "Shadows": true
+              }
+            }
+          ]
+        },
+        {
+          "Name": "EntranceThreshold",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Slate",
+            "Color": [0.23, 0.22, 0.2],
+            "CFrame": [0, -0.35, -51, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [14, 1, 8]
+          }
+        },
+        {
+          "Name": "TunnelFloor",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Slate",
+            "Color": [0.23, 0.22, 0.2],
+            "CFrame": [0, -6, -81, 1, 0, 0, 0, 0.982, 0.19, 0, -0.19, 0.982],
+            "Size": [14, 1, 64]
+          }
+        },
+        {
+          "Name": "TunnelLeftWall",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.24, 0.23, 0.22],
+            "CFrame": [-9, 1, -81, 1, 0, 0, 0, 0.982, 0.19, 0, -0.19, 0.982],
+            "Size": [4, 16, 64]
+          }
+        },
+        {
+          "Name": "TunnelRightWall",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.24, 0.23, 0.22],
+            "CFrame": [9, 1, -81, 1, 0, 0, 0, 0.982, 0.19, 0, -0.19, 0.982],
+            "Size": [4, 16, 64]
+          }
+        },
+        {
+          "Name": "TunnelRoof",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.2, 0.2, 0.19],
+            "CFrame": [0, 9, -81, 1, 0, 0, 0, 0.982, 0.19, 0, -0.19, 0.982],
+            "Size": [22, 2, 64]
+          }
+        },
+        {
+          "Name": "TunnelLamp",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "CanCollide": false,
+            "Material": "Neon",
+            "Color": [1, 0.53, 0.12],
+            "CFrame": [0, 5, -82, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [1, 1, 1],
+            "Shape": "Ball"
+          },
+          "Children": [
+            {
+              "Name": "Light",
+              "ClassName": "PointLight",
+              "Properties": {
+                "Brightness": 2,
+                "Color": [1, 0.55, 0.18],
+                "Range": 25,
+                "Shadows": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "UndergroundMine",
+      "ClassName": "Model",
+      "Children": [
+        {
+          "Name": "MineFloor",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Slate",
+            "Color": [0.21, 0.2, 0.18],
+            "CFrame": [0, -12.5, -135, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [72, 1, 52]
+          }
+        },
+        {
+          "Name": "LeftWall",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.23, 0.22, 0.2],
+            "CFrame": [-37, -1, -135, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [4, 24, 56]
+          }
+        },
+        {
+          "Name": "RightWall",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.23, 0.22, 0.2],
+            "CFrame": [37, -1, -135, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [4, 24, 56]
+          }
+        },
+        {
+          "Name": "FrontLeftWall",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.23, 0.22, 0.2],
+            "CFrame": [-23.25, -1, -109.5, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [25.5, 24, 4]
+          }
+        },
+        {
+          "Name": "FrontRightWall",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.23, 0.22, 0.2],
+            "CFrame": [23.25, -1, -109.5, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [25.5, 24, 4]
+          }
+        },
+        {
+          "Name": "FrontTopWall",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.19, 0.19, 0.18],
+            "CFrame": [0, 7, -109.5, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [22, 7, 4]
+          }
+        },
+        {
+          "Name": "BackWall",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.19, 0.19, 0.18],
+            "CFrame": [0, -1, -162, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [76, 24, 4]
+          }
+        },
+        {
+          "Name": "MineRoof",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "Material": "Rock",
+            "Color": [0.18, 0.18, 0.17],
+            "CFrame": [0, 10.5, -135, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [76, 2, 56]
+          }
+        },
+        {
+          "Name": "MiningArea",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "CanCollide": false,
+            "Material": "Cobblestone",
+            "Color": [0.38, 0.3, 0.22],
+            "Transparency": 0.45,
+            "CFrame": [0, -11.9, -139, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [30, 0.2, 20]
+          }
+        },
+        {
+          "Name": "CopperNodes",
+          "ClassName": "Folder",
+          "Children": [
+            {
+              "Name": "CopperNode01",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "Metal",
+                "Color": [0.72, 0.32, 0.13],
+                "CFrame": [-19, -8.5, -146, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [6, 7, 5],
+                "Shape": "Ball"
+              },
+              "Children": [
+                {
+                  "Name": "MiningPrompt",
+                  "ClassName": "ProximityPrompt",
+                  "Properties": {
+                    "ActionText": "Mine",
+                    "ObjectText": "Copper Ore",
+                    "ClickablePrompt": true,
+                    "Exclusivity": "OneGlobally",
+                    "HoldDuration": 0,
+                    "MaxActivationDistance": 10,
+                    "RequiresLineOfSight": true
+                  }
+                }
+              ]
+            },
+            {
+              "Name": "CopperNode02",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "Metal",
+                "Color": [0.78, 0.38, 0.15],
+                "CFrame": [18, -9, -149, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [7, 6, 6],
+                "Shape": "Ball"
+              },
+              "Children": [
+                {
+                  "Name": "MiningPrompt",
+                  "ClassName": "ProximityPrompt",
+                  "Properties": {
+                    "ActionText": "Mine",
+                    "ObjectText": "Copper Ore",
+                    "ClickablePrompt": true,
+                    "Exclusivity": "OneGlobally",
+                    "HoldDuration": 0,
+                    "MaxActivationDistance": 10,
+                    "RequiresLineOfSight": true
+                  }
+                }
+              ]
+            },
+            {
+              "Name": "CopperNode03",
+              "ClassName": "Part",
+              "Properties": {
+                "Anchored": true,
+                "Material": "Metal",
+                "Color": [0.67, 0.28, 0.11],
+                "CFrame": [27, -9.5, -128, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+                "Size": [5, 5, 5],
+                "Shape": "Ball"
+              },
+              "Children": [
+                {
+                  "Name": "MiningPrompt",
+                  "ClassName": "ProximityPrompt",
+                  "Properties": {
+                    "ActionText": "Mine",
+                    "ObjectText": "Copper Ore",
+                    "ClickablePrompt": true,
+                    "Exclusivity": "OneGlobally",
+                    "HoldDuration": 0,
+                    "MaxActivationDistance": 10,
+                    "RequiresLineOfSight": true
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Name": "MineLampLeft",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "CanCollide": false,
+            "Material": "Neon",
+            "Color": [1, 0.53, 0.12],
+            "CFrame": [-22, 1, -135, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [1.5, 1.5, 1.5],
+            "Shape": "Ball"
+          },
+          "Children": [
+            {
+              "Name": "Light",
+              "ClassName": "PointLight",
+              "Properties": {
+                "Brightness": 2.5,
+                "Color": [1, 0.55, 0.18],
+                "Range": 30,
+                "Shadows": true
+              }
+            }
+          ]
+        },
+        {
+          "Name": "MineLampRight",
+          "ClassName": "Part",
+          "Properties": {
+            "Anchored": true,
+            "CanCollide": false,
+            "Material": "Neon",
+            "Color": [1, 0.53, 0.12],
+            "CFrame": [22, 1, -135, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            "Size": [1.5, 1.5, 1.5],
+            "Shape": "Ball"
+          },
+          "Children": [
+            {
+              "Name": "Light",
+              "ClassName": "PointLight",
+              "Properties": {
+                "Brightness": 2.5,
+                "Color": [1, 0.55, 0.18],
+                "Range": 30,
+                "Shadows": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

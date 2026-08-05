@@ -12,7 +12,7 @@
 *.rbxmx
 
 # The minimal repository-owned world model is intentional source.
-!/place/world.rbxm
+!/place/world.model.json
 
 # Roblox Studio lock and local recovery files.
 *.rbxl.lock

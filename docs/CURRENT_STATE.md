@@ -1,10 +1,10 @@
 # Current State
 
-Last updated: 2026-08-02
+Last updated: 2026-08-05
 
 ## Completed
 
-- Completed product discovery and recorded the accepted game direction in `docs/GAME_DESIGN.md`, `docs/DECISIONS.md`, and `docs/ROADMAP.md`.
+- Completed product discovery and recorded the accepted game direction in the roadmap-aligned briefs under `docs/design/`, `docs/DECISIONS.md`, and `docs/ROADMAP.md`.
 - Completed **P1.1**: selected the Rojo filesystem-first architecture, client/shared/server boundaries, deterministic domain model, versioned persistence direction, and implementation order.
 - Completed **P1.2**: scaffolded the pinned Rojo/Rokit/Wally project, strict static checks, production/test mappings, Studio-hosted Jest harness, one-command validator, and beginner-oriented local setup guide.
 - Completed **P1.3** on `codex/p1.3-domain-seed` with stable lowercase namespaced-ID validation and typed item, equipment-slot, action, and modifier definitions.
@@ -24,11 +24,19 @@ Last updated: 2026-08-02
 - Added a minimal desktop/small-phone-sized Mining HUD and a primitive visible starter-pickaxe fixture. The temporary P2.1 profile owns the tool directly; Gold purchase behavior remains explicitly deferred to P2.2.
 - Full validation passes formatting, lint, strict Luau analysis, production/test Rojo builds, and 9 Studio/Jest suites with 32 tests. Coverage includes curve checkpoints/caps, action timing/remainders/bounds, network rejection, registry cross-references, requirements, XP configuration, recorder failure, and authoritative start/advance/stop behavior.
 - Completed the required P2.1 manual Roblox Studio playtest on desktop and a small-phone layout. Start/Stop Mining, repeating progress, Copper Ore/XP rewards, the visible starter pickaxe, respawn replacement, and HUD usability passed.
+- Implemented the P2.3 repository-owned world scene on `codex/p2.3-minimal-village` after explicitly reordering it ahead of P2.2: a grounded village square, spawn, blacksmith, supply shop, town hall, road, landmarked mine portal, descending enclosed tunnel, and underground copper chamber.
+- Replaced the empty binary world placeholder with a reviewable Rojo JSON model built entirely from Roblox primitives and built-in materials. No third-party models, textures, meshes, packages, or asset IDs were introduced.
+- Added P2.3 Studio integration coverage for the required scene hierarchy, anchored geometry, asset-free boundary, and three representative copper nodes. Full validation passes 10 suites and 35 tests.
+- Split the monolithic game design into focused roadmap-item briefs under `docs/design/`; replaced `docs/GAME_DESIGN.md` with a small reading index, moved P1.1 technical design to its roadmap-aligned path, updated repository guidance, and retained the original discovery brief as a non-required archive.
+- Addressed the first P2.3 visual-playtest failures: removed collision from the square brazier, extended and re-angled the mine shaft to overlap both endpoints, sealed the chamber front around the shaft, and added explicit seam regression checks.
+- Replaced the always-visible bottom Mining controls with per-node Roblox proximity prompts and a compact top HUD shown only while active or reporting an error. The server independently enforces a 10-stud distance from the ore surface and automatically stops Mining when the avatar walks away.
+- Refined Mining UI under accepted decision D-018 and current Roblox guidance: default single-visible proximity prompts provide platform input hints; the core-UI-safe responsive HUD separates activity from stats, hides while idle, uses a selectable 48-pixel Stop target, and reports out-of-range stopping without showing an invalid action.
+- Added deterministic Mining-location and adaptive-HUD coverage. Full validation passes formatting, lint, strict analysis, both Rojo builds, and 12 Studio/Jest suites with 39 tests.
+- Completed **P2.3** after the developer smoke-tested the corrected build successfully. The primitive village/mine, route collision, sealed shaft/chamber geometry, ore proximity interaction, automatic out-of-range stopping, and compact adaptive HUD are accepted for the prototype.
 
 ## Unfinished
 
 - **P2.2** is next: bank capacity/overflow, selling, Gold balances, and the real tool purchase/upgrade transaction. P2.1 temporarily stacks committed ore without enforcing capacity.
-- The world model is still empty, so a normal playtest avatar has no ground. World construction remains P2.3.
 - Durable persistence, migrations, and offline simulation remain later roadmap work; P2.1 state intentionally lasts only for the current server session.
 - The final public name and detailed prototype balance remain deferred.
 
@@ -49,10 +57,16 @@ Last updated: 2026-08-02
 - `src/shared/domain/PlayerDataSchema.luau` — schema compatibility and fresh default factory.
 - `src/shared/types/Result.luau` — shared explicit result/failure contract.
 - `tests/unit/*.spec.luau` and `tests/integration/MiningService.spec.luau` — deterministic domain, contract, content, and application coverage.
+- `place/world.model.json` — reviewable primitive village, mine entrance/tunnel, underground chamber, lighting fixtures, and copper-node scene source.
+- `tests/integration/WorldModel.spec.luau` — Studio checks for required world structure, anchoring, asset-free construction, and copper fixtures.
+- `src/server/services/MiningLocationService.luau` — server-side distance-from-ore enforcement used for start validation and automatic stop-on-leave behavior.
+- `tests/unit/MiningLocationService.spec.luau` — surface-distance and missing-character coverage for spatial Mining authority.
 - `scripts/run-tests.luau` and `scripts/validate.ps1` — hardened Studio test entry point and complete validator.
 - `.github/workflows/ci.yml` — read-only hosted validation with pinned checkout and checksum-verified Rokit bootstrap.
 - `.gitattributes` — checkout-stable LF rules for validated/hash-protected files.
-- `docs/ROADMAP.md` — P2.1 is complete and P2.2 is the only selected next item.
+- `docs/GAME_DESIGN.md` and `docs/design/README.md` — small session entry point and roadmap-to-brief map.
+- `docs/design/P2.3-village-and-mine.md` — completed world-slice design and playtest record.
+- `docs/ROADMAP.md` — P2.3 is complete and P2.2 is the selected next item.
 
 ## Decisions made
 
@@ -72,16 +86,18 @@ Last updated: 2026-08-02
 - The P2.1 owned starter pickaxe is an explicit runtime fixture, not an economy exception. P2.2 replaces that shortcut with the accepted Gold purchase flow and upgrade transaction.
 - Continuous action progress is derived from server timestamps. The server alone commits completed cycles, ore, and XP; the client prediction is visual and reconciles whenever a snapshot arrives.
 - Event recording occurs after the authoritative profile replacement. Recorder failure is returned for observability but does not roll back a valid gameplay commit.
+- P2.3 was explicitly moved ahead of P2.2 at the developer's request. It remains isolated to world construction; accepted bank, Gold, selling, and tool-purchase behavior remains unchanged and belongs to P2.2.
+- The P2.3 prototype environment uses only repository-declared Roblox primitive parts, built-in materials, and lights. This satisfies the accepted free-asset constraint while keeping later art replacement straightforward.
+- D-018 establishes an adaptive Roblox-native interface baseline: use familiar cross-platform affordances, core/device safe areas, responsive constraints, clear hierarchy and contrast, contextual visibility, selectable controls, and mobile-first targets while retaining the game's fantasy tone.
 
 ## Known issues
 
 - Jest Roblox 3.10 is still the Wally-backed development dependency until Roblox's 3.20 packages are published. Its aggregate `success` field is not trusted; zero failed-suite and failed-test counters plus the runtime-only sentinel define success.
 - The current content schema supports the profession/tool/action fields and three modifier targets needed by P2.1. Later roadmap items must extend it deliberately with matching validation and tests.
 - The P2.1 bank write intentionally has no capacity/overflow behavior. Do not treat it as the reusable bank transaction; P2.2 owns that implementation and its idempotency/failure tests.
-- The world remains empty despite the passing P2.1 gameplay/UI check, so the avatar may fall during play. World construction remains P2.3.
 - `roblox/jest@3.20.0` and `roblox/jest-globals@3.20.0` are not yet available through the live Wally index.
 - GitHub-hosted runners do not include Roblox Studio, so they cannot execute the Jest Roblox runtime suite. The hosted check covers deterministic static/build stages, while the default local validator covers those stages plus Studio/Jest.
 
 ## Exact recommended next task
 
-After `codex/p2.1-continuous-mining` is integrated, create a new branch for **P2.2 — Bank and economy path**. Implement the reusable bank transaction first, including capacity and explicit overflow outcomes, then selling/Gold and the accepted level-gated pickaxe purchase/upgrade flow with failure and idempotency tests.
+Start **P2.2 — Bank and economy path** on a new branch. Read its focused brief and dependencies, then implement the shared bank capacity/overflow path before selling, Gold balances, and the real level-gated pickaxe purchase/upgrade transaction.
